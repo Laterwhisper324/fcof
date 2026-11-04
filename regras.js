@@ -324,22 +324,35 @@ window.CoC7e.Regras = (function () {
 
     const limiteDesastre = alvoNecessario >= 50 ? 100 : 96;
 
+    function enriquecer(base) {
+      return Object.assign(base, {
+        nivel: base.codigo.toUpperCase(),
+        classeCss: 'nivel-' + base.codigo,
+        dificil: metade,
+        extremo: quinto,
+        limiteDesastre,
+        regular,
+        metade,
+        quinto
+      });
+    }
+
     if (r === 1) {
-      return { codigo: 'critico', rotulo: 'Sucesso Crítico', sucesso: true, ordem: 5, limiteDesastre, regular, metade, quinto };
+      return enriquecer({ codigo: 'critico', rotulo: 'Sucesso Crítico', sucesso: true, ordem: 5 });
     }
     if (r >= limiteDesastre) {
-      return { codigo: 'desastre', rotulo: 'Desastre', sucesso: false, ordem: 0, limiteDesastre, regular, metade, quinto };
+      return enriquecer({ codigo: 'desastre', rotulo: 'Desastre', sucesso: false, ordem: 0 });
     }
     if (r <= quinto) {
-      return { codigo: 'extremo', rotulo: 'Sucesso Extremo', sucesso: true, ordem: 4, limiteDesastre, regular, metade, quinto };
+      return enriquecer({ codigo: 'extremo', rotulo: 'Sucesso Extremo', sucesso: true, ordem: 4 });
     }
     if (r <= metade) {
-      return { codigo: 'dificil', rotulo: 'Sucesso Difícil (Sólido)', sucesso: true, ordem: 3, limiteDesastre, regular, metade, quinto };
+      return enriquecer({ codigo: 'dificil', rotulo: 'Sucesso Difícil (Sólido)', sucesso: true, ordem: 3 });
     }
     if (r <= regular) {
-      return { codigo: 'regular', rotulo: 'Sucesso Regular', sucesso: true, ordem: 2, limiteDesastre, regular, metade, quinto };
+      return enriquecer({ codigo: 'regular', rotulo: 'Sucesso Regular', sucesso: true, ordem: 2 });
     }
-    return { codigo: 'fracasso', rotulo: 'Fracasso', sucesso: false, ordem: 1, limiteDesastre, regular, metade, quinto };
+    return enriquecer({ codigo: 'fracasso', rotulo: 'Fracasso', sucesso: false, ordem: 1 });
   }
 
   /**
@@ -572,7 +585,226 @@ window.CoC7e.Regras = (function () {
     return `${base} ${dx.startsWith('-') ? dx : '+ ' + dx.replace(/^\+/, '')}`;
   }
 
+
+  /* ==========================================================================
+     MÉTODOS WRAPPER E ROLADORES COMPATÍVEIS COM O FRONTEND ANGULAR (APP.JS)
+     ========================================================================== */
+
+  function calcularPVMaximo(con, tam) {
+    return calcularPVMax(con, tam);
+  }
+
+  function calcularSanidadeInicial(pod) {
+    return calcularSanidade(pod).inicial;
+  }
+
+  function calcularSanidadeMaxima(mythos) {
+    return Math.max(0, 99 - (Math.floor(Number(mythos) || 0)));
+  }
+
+  function calcularPMMaximo(pod) {
+    return calcularPontosMagiaMax(pod);
+  }
+
+  function calcularPontosInteressePessoal(int) {
+    return calcularPontosInteresse(int);
+  }
+
+  function rolarDados(qtd = 1, lados = 6, mod = 0) {
+    const q = Math.max(1, Math.floor(Number(qtd) || 1));
+    const l = Math.max(1, Math.floor(Number(lados) || 6));
+    const m = Math.floor(Number(mod) || 0);
+    const rolagens = [];
+    let soma = 0;
+    for (let i = 0; i < q; i++) {
+      const d = Math.floor(Math.random() * l) + 1;
+      rolagens.push(d);
+      soma += d;
+    }
+    return {
+      rolagens,
+      soma,
+      mod: m,
+      total: soma + m
+    };
+  }
+
+  function rolarAtributo3D6() {
+    const r = rolarDados(3, 6, 0);
+    return {
+      dados: r.rolagens,
+      soma: r.soma,
+      multiplicador: 5,
+      valor: r.soma * 5
+    };
+  }
+
+  function rolarAtributo2D6Mais6() {
+    const r = rolarDados(2, 6, 0);
+    const somaCom6 = r.soma + 6;
+    return {
+      dados: r.rolagens,
+      soma: somaCom6,
+      multiplicador: 5,
+      valor: somaCom6 * 5
+    };
+  }
+
+  function rolarConjuntoAtributos(metodo = 'padrao') {
+    const atributos = {
+      FOR: rolarAtributo3D6(),
+      CON: rolarAtributo3D6(),
+      TAM: rolarAtributo2D6Mais6(),
+      DES: rolarAtributo3D6(),
+      APA: rolarAtributo3D6(),
+      INT: rolarAtributo2D6Mais6(),
+      POD: rolarAtributo3D6(),
+      EDU: rolarAtributo2D6Mais6()
+    };
+    const poolLivre = Object.keys(atributos).map((k) => atributos[k].valor);
+    return {
+      metodo,
+      atributos,
+      poolLivre
+    };
+  }
+
+  function executarTestesMelhoriaEDU(eduAtual, qtd = 1) {
+    const numTestes = Math.max(0, Math.floor(Number(qtd) || 0));
+    let atual = Math.min(99, Math.max(0, Math.floor(Number(eduAtual) || 0)));
+    const eduInicial = atual;
+    const historico = [];
+
+    for (let i = 0; i < numTestes; i++) {
+      const d100 = Math.floor(Math.random() * 100) + 1;
+      const d10 = Math.floor(Math.random() * 10) + 1;
+      const res = resolverMelhoriaEDU(atual, d100, d10);
+      historico.push({
+        teste: i + 1,
+        d100,
+        d10: res.melhorou ? d10 : 0,
+        melhorou: res.melhorou,
+        ganho: res.ganho,
+        eduNova: res.eduNova
+      });
+      atual = res.eduNova;
+    }
+
+    return {
+      eduInicial,
+      eduFinal: atual,
+      ganhoTotal: atual - eduInicial,
+      historico
+    };
+  }
+
+  function rolarSorteInicial(duplaSorte = false) {
+    const r1 = rolarAtributo3D6();
+    const rolagens = [r1];
+    let valorEscolhido = r1.valor;
+
+    if (duplaSorte) {
+      const r2 = rolarAtributo3D6();
+      rolagens.push(r2);
+      valorEscolhido = Math.max(r1.valor, r2.valor);
+    }
+
+    return {
+      duplaSorte: Boolean(duplaSorte),
+      rolagens,
+      valorEscolhido
+    };
+  }
+
+  function sortearItemTabela(tabela) {
+    if (!Array.isArray(tabela) || tabela.length === 0) {
+      return { indice: 0, item: '' };
+    }
+    const idx = Math.floor(Math.random() * tabela.length);
+    return {
+      indice: idx + 1,
+      item: tabela[idx]
+    };
+  }
+
+  function rolar1d100ComBonusPenalidade(dadosBonusPenalidade = 0) {
+    const modNum = Number(dadosBonusPenalidade) || 0;
+    const unidade = Math.floor(Math.random() * 10);
+    const qtdDezenas = 1 + Math.abs(modNum);
+    const dezenasRoladas = [];
+    for (let i = 0; i < qtdDezenas; i++) {
+      dezenasRoladas.push(Math.floor(Math.random() * 10));
+    }
+    const modo = modNum > 0 ? 'bonus' : (modNum < 0 ? 'penalidade' : 'normal');
+    const combinacao = combinarDadosD100(unidade, dezenasRoladas, modo);
+
+    let dezenaEscolhida = dezenasRoladas[0];
+    for (let i = 0; i < dezenasRoladas.length; i++) {
+      const d = dezenasRoladas[i];
+      const val = (d * 10 + unidade === 0) ? 100 : (d * 10 + unidade);
+      if (val === combinacao.resultadoFinal) {
+        dezenaEscolhida = d;
+        break;
+      }
+    }
+
+    return {
+      resultadoFinal: combinacao.resultadoFinal,
+      unidade,
+      dezenaEscolhida,
+      dezenasRoladas,
+      tipoModificador: modNum > 0 ? ('+' + modNum + ' DADO' + (modNum > 1 ? 'S' : '') + ' BÔNUS') : (modNum < 0 ? (modNum + ' DADO' + (Math.abs(modNum) > 1 ? 'S' : '') + ' PENALIDADE') : 'NORMAL')
+    };
+  }
+
+  function aplicarDanoPV(pvAtual, pvMax, dano, jaTinhaLesaoGrave = false) {
+    const res = aplicarDanoCombate(pvAtual, pvMax, dano, jaTinhaLesaoGrave);
+    const avisos = [res.resumo];
+    return Object.assign({}, res, { avisos });
+  }
+
+  function aplicarPerdaSanidade(sanAtual, perda, perdaDiaAnterior = 0, sanInicioDia = sanAtual) {
+    const res = avaliarPerdaSanidade(sanAtual, perda, perdaDiaAnterior, sanInicioDia);
+    const p = Math.max(0, Math.floor(Number(perda) || 0));
+    const avisos = [];
+    if (res.permanentementeInsano) {
+      avisos.push('SANIDADE ZERO: Insanidade Permanente! O investigador se torna um PNJ.');
+    } else if (res.gatilhoIndefinida) {
+      avisos.push('INSANIDADE INDEFINIDA! Perdeu ⅕ ou mais da Sanidade do dia.');
+    } else if (res.gatilhoTemporaria) {
+      avisos.push('PERDA DE 5+ SAN! Requer Teste de Ideia (INT) para evitar Insanidade Temporária.');
+    } else if (p > 0) {
+      avisos.push('Perda de ' + p + ' ponto(s) de Sanidade registrada.');
+    }
+
+    return Object.assign({}, res, {
+      insanidadeTemporaria: res.gatilhoTemporaria,
+      insanidadeIndefinida: res.gatilhoIndefinida,
+      avisos
+    });
+  }
+
+  function executarDesenvolvimentoPericia(totalAtual) {
+    const d100 = Math.floor(Math.random() * 100) + 1;
+    const d10 = Math.floor(Math.random() * 10) + 1;
+    const res = resolverDesenvolvimentoPericia(totalAtual, d100, d10);
+    let recuperouSanidade2d6 = 0;
+    if (res.bonusSanidade2D6) {
+      const r2d6 = rolarDados(2, 6, 0);
+      recuperouSanidade2d6 = r2d6.total;
+    }
+    return {
+      evoluiu: res.evoluiu,
+      rolagem1d100: d100,
+      ganho1d10: res.ganho,
+      valorNovo: res.valorNovo,
+      recuperouSanidade2d6,
+      bonusSanidade2D6: res.bonusSanidade2D6
+    };
+  }
+
   return {
+    // Métodos Canônicos do Livro
     calcularMetadeQuinto,
     calcularPVMax,
     calcularSanidade,
@@ -591,6 +823,24 @@ window.CoC7e.Regras = (function () {
     aplicarDanoCombate,
     avaliarPerdaSanidade,
     resolverDesenvolvimentoPericia,
-    formatarDanoArma
+    formatarDanoArma,
+
+    // Aliases e Wrappers do Frontend Angular (app.js)
+    calcularPVMaximo,
+    calcularSanidadeInicial,
+    calcularSanidadeMaxima,
+    calcularPMMaximo,
+    calcularPontosInteressePessoal,
+    rolarDados,
+    rolarAtributo3D6,
+    rolarAtributo2D6Mais6,
+    rolarConjuntoAtributos,
+    executarTestesMelhoriaEDU,
+    rolarSorteInicial,
+    sortearItemTabela,
+    rolar1d100ComBonusPenalidade,
+    aplicarDanoPV,
+    aplicarPerdaSanidade,
+    executarDesenvolvimentoPericia
   };
 })();

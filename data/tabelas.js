@@ -17,14 +17,14 @@ window.CoC7e = window.CoC7e || {};
 window.CoC7e.TABELAS = {
   // Atributos Principais (págs. 30-31)
   ATRIBUTOS: [
-    { sigla: 'FOR', nome: 'Força', formula: '3d6*5', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 99, descricao: 'Poder muscular, capacidade de levantar peso e dano corpo a corpo.' },
-    { sigla: 'CON', nome: 'Constituição', formula: '3d6*5', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 99, descricao: 'Saúde, vigor, vitalidade e resistência a doenças, venenos e ferimentos.' },
-    { sigla: 'TAM', nome: 'Tamanho', formula: '(2d6+6)*5', dados: 2, soma: 6, mult: 5, minRec: 40, maxCriacao: 90, maxHumano: 99, descricao: 'Altura e peso combinados. Determina PV, Dano Extra, Corpo e MOV.' },
-    { sigla: 'DES', nome: 'Destreza', formula: '3d6*5', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxCrio: 90, maxHumano: 99, descricao: 'Agilidade, reflexos, velocidade física, Esquiva base e ordem de ação em combate.' },
-    { sigla: 'APA', nome: 'Aparência', formula: '3d6*5', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 99, descricao: 'Atratividade física, presença e simpatia pessoal.' },
-    { sigla: 'INT', nome: 'Inteligência', formula: '(2d6+6)*5', dados: 2, soma: 6, mult: 5, minRec: 40, maxCriacao: 90, maxHumano: 99, descricao: 'Capacidade de aprendizado, análise, Testes de Ideia e Pontos de Interesse Pessoal (INT × 2).' },
-    { sigla: 'POD', nome: 'Poder', formula: '3d6*5', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 100, descricao: 'Força de vontade, aptidão mágica, Sanidade inicial (igual ao POD) e Pontos de Magia (POD / 5).' },
-    { sigla: 'EDU', nome: 'Educação', formula: '(2d6+6)*5', dados: 2, soma: 6, mult: 5, minRec: 40, maxCriacao: 90, maxHumano: 99, descricao: 'Conhecimento formal e factual, Testes de Saber, base de Língua Nativa e Pontos de Ocupação.' }
+    { sigla: 'FOR', nome: 'Força', formula: '3d6*5', tipoDado: '3D6', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 99, descricao: 'Poder muscular, capacidade de levantar peso e dano corpo a corpo.' },
+    { sigla: 'CON', nome: 'Constituição', formula: '3d6*5', tipoDado: '3D6', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 99, descricao: 'Saúde, vigor, vitalidade e resistência a doenças, venenos e ferimentos.' },
+    { sigla: 'TAM', nome: 'Tamanho', formula: '(2d6+6)*5', tipoDado: '2D6+6', dados: 2, soma: 6, mult: 5, minRec: 40, maxCriacao: 90, maxHumano: 99, descricao: 'Altura e peso combinados. Determina PV, Dano Extra, Corpo e MOV.' },
+    { sigla: 'DES', nome: 'Destreza', formula: '3d6*5', tipoDado: '3D6', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 99, descricao: 'Agilidade, reflexos, velocidade física, Esquiva base e ordem de ação em combate.' },
+    { sigla: 'APA', nome: 'Aparência', formula: '3d6*5', tipoDado: '3D6', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 99, descricao: 'Atratividade física, presença e simpatia pessoal.' },
+    { sigla: 'INT', nome: 'Inteligência', formula: '(2d6+6)*5', tipoDado: '2D6+6', dados: 2, soma: 6, mult: 5, minRec: 40, maxCriacao: 90, maxHumano: 99, descricao: 'Capacidade de aprendizado, análise, Testes de Ideia e Pontos de Interesse Pessoal (INT × 2).' },
+    { sigla: 'POD', nome: 'Poder', formula: '3d6*5', tipoDado: '3D6', dados: 3, soma: 0, mult: 5, minRec: 15, maxCriacao: 90, maxHumano: 100, descricao: 'Força de vontade, aptidão mágica, Sanidade inicial (igual ao POD) e Pontos de Magia (POD / 5).' },
+    { sigla: 'EDU', nome: 'Educação', formula: '(2d6+6)*5', tipoDado: '2D6+6', dados: 2, soma: 6, mult: 5, minRec: 40, maxCriacao: 90, maxHumano: 99, descricao: 'Conhecimento formal e factual, Testes de Saber, base de Língua Nativa e Pontos de Ocupação.' }
   ],
 
   // Opção 5: Método do Tiro Rápido - Conjunto Fixo de Atributos (pág. 48)
@@ -44,91 +44,91 @@ window.CoC7e.TABELAS = {
       min: 15,
       max: 19,
       rotulo: '15 a 19 anos (Jovem)',
-      melhoriasEDU: 0,
+      melhoriasEDU: 0, testesMelhoriaEDU: 0,
       penalidadeEDU: 5,
       penalidadeFisicaTotal: 5,
       atributosPenalidadeFisica: ['FOR', 'TAM'],
       penalidadeAPA: 0,
       penalidadeMOV: 0,
-      sorteDupla: true,
+      sorteDupla: true, duplaSorte: true,
       descricao: 'Reduza 5 pontos distribuídos entre FOR e TAM. Reduza 5 pontos de EDU. Jogue duas vezes para a Sorte e use o maior valor.'
     },
     {
       min: 20,
       max: 39,
       rotulo: '20 a 39 anos (Adulto)',
-      melhoriasEDU: 1,
+      melhoriasEDU: 1, testesMelhoriaEDU: 1,
       penalidadeEDU: 0,
       penalidadeFisicaTotal: 0,
       atributosPenalidadeFisica: [],
       penalidadeAPA: 0,
       penalidadeMOV: 0,
-      sorteDupla: false,
+      sorteDupla: false, duplaSorte: false,
       descricao: 'Faça 1 verificação de melhoria para EDU (1d100 > EDU atual adiciona +1d10).'
     },
     {
       min: 40,
       max: 49,
       rotulo: '40 a 49 anos (Meia-idade)',
-      melhoriasEDU: 2,
+      melhoriasEDU: 2, testesMelhoriaEDU: 2,
       penalidadeEDU: 0,
       penalidadeFisicaTotal: 5,
       atributosPenalidadeFisica: ['FOR', 'CON', 'DES'],
       penalidadeAPA: 5,
       penalidadeMOV: 1,
-      sorteDupla: false,
+      sorteDupla: false, duplaSorte: false,
       descricao: 'Faça 2 verificações de melhoria para EDU. Reduza 5 pontos distribuídos entre FOR, CON e DES. Reduza APA em 5 e MOV em 1.'
     },
     {
       min: 50,
       max: 59,
       rotulo: '50 a 59 anos',
-      melhoriasEDU: 3,
+      melhoriasEDU: 3, testesMelhoriaEDU: 3,
       penalidadeEDU: 0,
       penalidadeFisicaTotal: 10,
       atributosPenalidadeFisica: ['FOR', 'CON', 'DES'],
       penalidadeAPA: 10,
       penalidadeMOV: 2,
-      sorteDupla: false,
+      sorteDupla: false, duplaSorte: false,
       descricao: 'Faça 3 verificações de melhoria para EDU. Reduza 10 pontos distribuídos entre FOR, CON e DES. Reduza APA em 10 e MOV em 2.'
     },
     {
       min: 60,
       max: 69,
       rotulo: '60 a 69 anos',
-      melhoriasEDU: 4,
+      melhoriasEDU: 4, testesMelhoriaEDU: 4,
       penalidadeEDU: 0,
       penalidadeFisicaTotal: 20,
       atributosPenalidadeFisica: ['FOR', 'CON', 'DES'],
       penalidadeAPA: 15,
       penalidadeMOV: 3,
-      sorteDupla: false,
+      sorteDupla: false, duplaSorte: false,
       descricao: 'Faça 4 verificações de melhoria para EDU. Reduza 20 pontos distribuídos entre FOR, CON e DES. Reduza APA em 15 e MOV em 3.'
     },
     {
       min: 70,
       max: 79,
       rotulo: '70 a 79 anos',
-      melhoriasEDU: 4,
+      melhoriasEDU: 4, testesMelhoriaEDU: 4,
       penalidadeEDU: 0,
       penalidadeFisicaTotal: 40,
       atributosPenalidadeFisica: ['FOR', 'CON', 'DES'],
       penalidadeAPA: 20,
       penalidadeMOV: 4,
-      sorteDupla: false,
+      sorteDupla: false, duplaSorte: false,
       descricao: 'Faça 4 verificações de melhoria para EDU. Reduza 40 pontos distribuídos entre FOR, CON e DES. Reduza APA em 20 e MOV em 4.'
     },
     {
       min: 80,
       max: 90,
       rotulo: '80 a 90 anos',
-      melhoriasEDU: 4,
+      melhoriasEDU: 4, testesMelhoriaEDU: 4,
       penalidadeEDU: 0,
       penalidadeFisicaTotal: 80,
       atributosPenalidadeFisica: ['FOR', 'CON', 'DES'],
       penalidadeAPA: 25,
       penalidadeMOV: 5,
-      sorteDupla: false,
+      sorteDupla: false, duplaSorte: false,
       descricao: 'Faça 4 verificações de melhoria para EDU. Reduza 80 pontos distribuídos entre FOR, CON e DES. Reduza APA em 25 e MOV em 5.'
     }
   ],
@@ -334,3 +334,12 @@ window.CoC7e.TABELAS = {
     { nome: 'Automóvel Buick 1917 (Usado)', categoria: 'Veículos', preco: '$75,00' }
   ]
 };
+
+
+// Aliases diretos para app.js e templates do Wizard / Ficha Viva
+window.CoC7e.TABELAS.ANTECEDENTES_IDEOLOGIA = window.CoC7e.TABELAS.ANTECEDENTES.ideologiaCrencas;
+window.CoC7e.TABELAS.ANTECEDENTES_PESSOAS_QUEM = window.CoC7e.TABELAS.ANTECEDENTES.pessoasSignificativasQuem;
+window.CoC7e.TABELAS.ANTECEDENTES_PESSOAS_PORQUE = window.CoC7e.TABELAS.ANTECEDENTES.pessoasSignificativasPorque;
+window.CoC7e.TABELAS.ANTECEDENTES_LOCAIS = window.CoC7e.TABELAS.ANTECEDENTES.locaisImportantes;
+window.CoC7e.TABELAS.ANTECEDENTES_PERTENCES = window.CoC7e.TABELAS.ANTECEDENTES.pertencesQueridos;
+window.CoC7e.TABELAS.ANTECEDENTES_CARACTERISTICAS = window.CoC7e.TABELAS.ANTECEDENTES.caracteristicas;
