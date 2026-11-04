@@ -79,6 +79,7 @@
   <script src="data/ocupacoes.js"></script>
   <script src="data/armas.js"></script>
   <script src="regras.js"></script>
+  <script src="pdf-export.js"></script>
 
   <script>
     (function () {
@@ -211,6 +212,67 @@
       afirmarIgual('Desenvolvimento (pág. 94): Perícia 85%, rola 90 (>85) e +6 → Sobe para 91% e ganha bônus +2D6 SAN por cruzar 90%', R.resolverDesenvolvimentoPericia(85, 90, 6), {
         valorAnterior: 85, rolagemD100: 90, evoluiu: true, ganho: 6, valorNovo: 91, bonusSanidade2D6: true
       });
+
+      // 10. Exportação PDF no Formato Oficial Anexado (FICHA-EDITAVEL-CHAMADO-DE-CTHULHU.pdf — 360 campos)
+      iniciarGrupo('10. Mapeamento 1-para-1 da Ficha PDF Editável Oficial (Páginas 1 e 2 — 360 campos AcroForm)');
+      const harveyMock = {
+        identidade: { nome: 'Harvey Walters', jogador: 'Jogador Exemplo', idade: 42, sexo: 'Masc.', residencia: 'Nova Iorque', localNascimento: 'Boston' },
+        ocupacaoNome: 'Jornalista',
+        atributosFinais: { FOR: 20, CON: 70, TAM: 80, DES: 55, APA: 80, INT: 85, POD: 45, EDU: 84 },
+        derivados: { pvMax: 15, sanInicial: 45, sanMax: 99, pmMax: 9, sorteAtual: 45, danoExtra: 'Nenhum', corpo: 0, mov: 6, lesaoGrave: false, insanidadeTemporaria: false, insanidadeIndefinida: false },
+        pericias: [
+          { id: 'arqueologia', nome: 'Arqueologia', base: 1, ocupacao: 0, interesse: 79, outros: 0, marcada: true },
+          { id: 'arte_e_oficio', nome: 'Arte e Ofício (Fotografia)', familia: 'Arte e Ofício', especializacao: 'Fotografia', base: 5, ocupacao: 20, interesse: 0, outros: 0 },
+          { id: 'usar_bibliotecas', nome: 'Usar Bibliotecas', base: 20, ocupacao: 45, interesse: 0, outros: 0 },
+          { id: 'nivel_de_credito', nome: 'Nível de Crédito', base: 0, ocupacao: 41, interesse: 0, outros: 0 },
+          { id: 'lingua_nativa', nome: 'Língua (Nativa: Inglês)', familia: 'Língua (Nativa)', especializacao: 'Inglês', base: 84, ocupacao: 0, interesse: 0, outros: 0 },
+          { id: 'lingua_outra', nome: 'Língua (Outra: Latim)', familia: 'Língua (Outra)', especializacao: 'Latim', base: 1, ocupacao: 0, interesse: 83, outros: 0 },
+          { id: 'pilotar', nome: 'Pilotar (Aeronaves)', familia: 'Pilotar', especializacao: 'Aeronaves', base: 1, ocupacao: 0, interesse: 5, outros: 44 },
+          { id: 'esquivar', nome: 'Esquivar', base: 27, ocupacao: 0, interesse: 0, outros: 0 }
+        ],
+        antecedentes: {
+          descricaoPessoal: 'Bonito, bem vestido e um pouco acima do peso.',
+          caracteristicas: 'Galanteador.',
+          ideologiaCrencas: 'Destino. Procura por sinais e presságios.',
+          pessoasSignificativas: 'Tio Theodore.',
+          locaisImportantes: 'Estúdio no andar superior de sua casa.',
+          pertencesQueridos: 'Artefatos arqueológicos.',
+          conexaoChave: 'Pertences Queridos'
+        },
+        equipamentos: ['Caderno e caneta', 'Câmera fotográfica'],
+        companheiros: [{ personagem: 'Prof. Armitage', jogador: 'Mestre', relacao: 'Mentor Acadêmico' }]
+      };
+      const mapaPDF = window.CoC7e.PDFExport.criarMapaAcroFormOficial(harveyMock);
+      afirmarIgual('PDF Pág. 1 — Cabeçalho (Nome, Ocupação, Idade)', { nome: mapaPDF.camposTexto['Nome'], ocup: mapaPDF.camposTexto['Ocupação'], age: mapaPDF.camposTexto['age'] }, { nome: 'Harvey Walters', ocup: 'Jornalista', age: '42' });
+      afirmarIgual('PDF Pág. 1 — EDU 84 (Regular, Metade e Quinto)', { reg: mapaPDF.camposTexto['edu'], met: mapaPDF.camposTexto['edu Metade'], qui: mapaPDF.camposTexto['edu 1/5'] }, { reg: '84', met: '42', qui: '16' });
+      afirmarIgual('PDF Pág. 1 — Vitais (MaxHP=15, Sanity_Start=45, Sanity_Max=99, LuckTotal=45)', { hp: mapaPDF.camposTexto['MaxHP'], san: mapaPDF.camposTexto['Sanity_Start'], sanMax: mapaPDF.camposTexto['Sanity_Max'], luck: mapaPDF.camposTexto['LuckTotal'] }, { hp: '15', san: '45', sanMax: '99', luck: '45' });
+      afirmarIgual('PDF Pág. 1 — Usar Bibliotecas 65% mapeado para abranco14a / a1 Metadedbranco2 / a1 1/5dbranco2', { reg: mapaPDF.camposTexto['abranco14a'], met: mapaPDF.camposTexto['a1 Metadedbranco2'], qui: mapaPDF.camposTexto['a1 1/5dbranco2'] }, { reg: '65', met: '32', qui: '13' });
+      afirmarIgual('PDF Pág. 1 — Especializações (Fotografia, Inglês, Latim, Aeronaves)', {
+        arte: mapaPDF.camposTexto['ARTES OU OFICIOS'],
+        nativa: mapaPDF.camposTexto['LINGUA NATURALL'],
+        outra: mapaPDF.camposTexto['LINGUA OUTRASS'],
+        pilotar: mapaPDF.camposTexto['abranco13']
+      }, { arte: 'Fotografia', nativa: 'Inglês', outra: 'Latim', pilotar: 'Aeronaves' });
+      afirmarIgual('PDF Pág. 2 — Antecedentes e Finanças (Texto2, Texto3, Texto5 com *, Texto14, Texto15, Texto13)', {
+        desc: mapaPDF.camposTexto['Texto2'],
+        carac: mapaPDF.camposTexto['Texto3'],
+        pert: mapaPDF.camposTexto['Texto5'],
+        gastos: mapaPDF.camposTexto['Texto14'],
+        dinheiro: mapaPDF.camposTexto['Texto15'],
+        patrimonio: mapaPDF.camposTexto['Texto13']
+      }, {
+        desc: 'Bonito, bem vestido e um pouco acima do peso.',
+        carac: 'Galanteador.',
+        pert: '* [CONEXÃO-CHAVE] Artefatos arqueológicos.',
+        gastos: 'Médio ($10)',
+        dinheiro: '$82',
+        patrimonio: '$2.050'
+      });
+      afirmarIgual('PDF Pág. 2 — Companheiro #1 (Texto16, Texto17, Texto18)', {
+        p: mapaPDF.camposTexto['Texto16'],
+        j: mapaPDF.camposTexto['Texto17'],
+        r: mapaPDF.camposTexto['Texto18']
+      }, { p: 'Prof. Armitage', j: 'Mestre', r: 'Mentor Acadêmico' });
 
       // Renderiza resultados
       const resumoEl = document.getElementById('resumo-testes');

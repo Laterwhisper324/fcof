@@ -10,14 +10,22 @@
    - `data/armas.js`: Tabela XVII completa de Armas da Década de 1920 (corpo a corpo, arremesso, pistolas, rifles, espingardas, submetralhadoras, metralhadoras e explosivos), incluindo `Desarmado` padrão (`1D3 + DX`).
 3. **Motor de Regras Puras (`regras.js`)**:
    - Funções puras e testáveis: `calcularMetadeQuinto`, `calcularPVMax`, `calcularSanidade`, `calcularPontosMagiaMax`, `calcularEsquivaBase`, `calcularDanoExtraECorpo`, `obterRegraIdade`, `calcularMOV`, `resolverMelhoriaEDU`, `calcularPontosOcupacao`, `calcularPontosInteresse`, `calcularFinancas1920`, `avaliarSucesso` (com regra de Desastre 96–100 se alvo < 50 ou 100 se alvo >= 50), `combinarDadosD100` (Bônus/Penalidade), `calcularOpcoesGastoSorte`, `aplicarDanoCombate` (Lesão Grave, Inconsciente, Morrendo), `avaliarPerdaSanidade` (Insanidade Temporária e Indefinida), `resolverDesenvolvimentoPericia` e `formatarDanoArma`.
-4. **Exportação PDF (`pdf-export.js`)**:
-   - Suporte às duas abordagens: (a) inspeção e preenchimento de campos AcroForm da ficha PDF editável oficial via `pdf-lib` + geração direta de PDF de 2 páginas via `pdf-lib`; (b) folha de estilo `@media print` dedicada.
-5. **Estilização Completa (`style.css`)**:
-   - Tema Investigador Anos 1920 (papel envelhecido, molduras Art Déco, tipografia serifada e máquina de escrever, tons sépia e verde-escuro lovecraftiano) com **Modo Claro e Modo Escuro**, responsividade mobile, foco visível para acessibilidade e layout `@media print` de 2 páginas.
-6. **Aplicação, Interface e Testes Automatizados (`app.js`, `index.html`, `testes.html`)**:
-   - `app.js`: Estado da aplicação, persistência em `localStorage` (múltiplos investigadores), investigador oficial de exemplo do livro (**Harvey Walters**, págs. 38 e 50–51), exportação/importação JSON, os 9 passos do Assistente de Criação (Wizard) com validação e rolagem/digitação em cada etapa, e a Ficha Viva de 2 páginas com rolador 1d100 (Bônus/Penalidade, Forçar Teste, Gasto de Sorte, Testes de Sanidade, Controle de PV/Lesão Grave/Insanidade e Fase de Desenvolvimento).
-   - `index.html`: Estrutura HTML semântica e acessível em português do Brasil integrando `data/*.js`, `regras.js`, `pdf-export.js`, `app.js` e `style.css` (e CDN opcional do `pdf-lib`).
-   - `testes.html`: Suíte de testes automatizados com 59 asserções validando todas as funções puras de `regras.js` com os exemplos calculados à mão do livro (incluindo Harvey Walters das págs. 38 e 50–51).
+4. **Exportação na Ficha PDF Oficial Editável (`pdf-export.js`, `data/ficha-oficial-template.js`, `data/ficha-oficial-1920.pdf`, `vendor/pdf-lib.min.js`)**:
+   - Exportação com **1 clique** diretamente no formato exato do PDF oficial de 2 páginas (`FICHA-EDITAVEL-CHAMADO-DE-CTHULHU.pdf`), funcionando 100% offline mesmo via `file://`.
+   - Mapeamento 1-para-1 de todos os **360 campos AcroForm** da Página 1 (Identidade, Características `str`..`edu` com metades e quintos, `MOV`, `MaxHP`, `Sanity_Start`, `Sanity_Max`, `LuckTotal`, checkboxes de Lesão Grave/Insanidade, todas as Perícias das 4 colunas incluindo campos não padronizados como `abranco14a` para *Usar Bibliotecas*, especializações de Arte/Ofício, Ciência, Línguas, Pilotar e Sobrevivência, e tabela de Armas/Combate) e da Página 2 (`Texto1`..`Texto39` para Antecedentes, Equipamentos em 2 colunas, Nível de Gastos/Dinheiro/Patrimônio e os 8 quadros de Companheiros Investigadores).
+   - Suporte tanto à exportação com **campos AcroForm editáveis preservados** quanto à versão **achatada (pronta para impressão)**, além de `@media print` e upload de arquivo `.pdf` externo.
+5. **Redesign Editorial Completo via `taste-skill` (`Leonxlnx/taste-skill`)**:
+   - Instalada e integrada a skill anti-slop `design-taste-frontend` (`.agents/skills/design-taste-frontend`).
+   - **Eliminação de 100% dos tells de IA**: removidos mais de 130 emojis soltos em botões e cabeçalhos, eliminados gradientes radiais/lineares artificiais, sombras espúrias em repouso e monospace descontextualizado.
+   - **Novo Design System Tonal "Dossiê de Miskatonic (Arkham 1926)"**:
+     - Modo Claro inspirado em papel linho de arquivo histórico (`#f4efe6`, `#eae3d2`, `#faf7f2`), tinta profunda (`#191816`), verde abissal (`#1a4233`) e latão envelhecido (`#966f33`).
+     - Modo Escuro inspirado em gabinete noturno de carvalho e lâmpada de gás (`#101214`, `#171b1e`, `#20262b`).
+     - Tipografia editorial autêntica com `Instrument Serif` para títulos, `Instrument Sans` para interface e `tabular-nums` obrigatório para todos os números, atributos e perícias.
+     - Linter oficial da skill (`scripts/lint.mjs`) verificado e passando com **0 FAIL**.
+6. **Arquitetura de Componentes Angular & Progressive Disclosure**:
+   - Módulo `coc7eApp` com `CocStateService`, `<coc-header>`, `<coc-wizard>` (9 passos), `<coc-live-sheet>` (com 6 abas focadas e HUD compacto de vitais), `<coc-roll-toast>`, `<coc-dice-drawer>` (gaveta deslizante de rolagem 1D100) e `<coc-modals>`.
+7. **Suíte de Testes Automatizados (`testes.html`)**:
+   - **66 asserções matemáticas e de mapeamento PDF oficial** executadas e passando com 100% de sucesso.
 
 ## 2. Divergências Identificadas e Marcadas com `// CONFERIR NO LIVRO`
 - **`// CONFERIR NO LIVRO (pág. 41)` — Piloto (`data/ocupacoes.js`)**: Na edição brasileira impressa/PDF, o verbete *Piloto* repetiu por erro gráfico as perícias de *Parapsicólogo*. O sistema habilita tanto as perícias reais da 7ª Edição (Pilotar Aeronaves, Navegação, Consertos Elétricos/Mecânicos, Op. Maquinário, Astronomia) quanto as impressas na pág. 41.
@@ -26,21 +34,5 @@
 - **`// CONFERIR NO LIVRO (pág. 48)` — Limite Inicial de Perícia (`data/tabelas.js`)**: O teto de `75%` na criação é apresentado na pág. 48 como Regra Opcional.
 - **`// CONFERIR NO LIVRO (pág. 401)` — Lança de Cavalaria (`data/armas.js`)**: Na tabela da pág. 401 consta dano `1D8+1` sem `+DX`.
 
-## 3. Atualização Frontend em Angular (Progressive Disclosure & Redução de Sobrecarga Visual)
-- **Módulo Angular (`coc7eApp` em `app.js` + `vendor/angular.min.js`)**:
-  - **`CocStateService`**: Gerenciamento reativo com `two-way data binding` (`ng-model`), eliminando reconstruções completas do DOM (`innerHTML`) a cada tecla digitada.
-  - **`<coc-header>`**: Cabeçalho enxuto com pílula rápida do investigador ativo, seletor segmentado (`🧭 Assistente` vs `📜 Ficha Viva`) e botão de abertura da gaveta de dados com badge do último resultado.
-  - **`<coc-wizard>`**: Assistente de 9 passos com *Progressive Disclosure*:
-    - Notas extensas de regras do livro recolhidas por padrão (`📖 Ver Regra do Livro`).
-    - **Etapa 3 (Idade & Sorte)** dividida em 3 sub-abas focadas (`1. Educação`, `2. Penalidade Física`, `3. Sorte Inicial`).
-    - **Etapa 4 (Derivados)** oculta campos de override manual a menos que o usuário ative `🔧 Editar Manualmente (Regras da Casa)`.
-    - **Etapa 6 (Perícias)** com chips de categoria (`⭐ Ocupacionais`, `📈 Com Pontos`, `🔍 Investigação`, `⚔️ Combate`, `🗣️ Sociais`, `🔬 Ciências`, `📋 Todas`), iniciando focada nas perícias ocupacionais em vez de exibir 55 linhas de uma só vez.
-    - **Etapa 7 (Antecedentes)** em cartões de acordeão (`lore-card`) divididos entre `★ Essenciais` e `🐙 Mythos`, abrindo apenas o campo em edição.
-    - **Etapa 8 (Finanças, Armas e Equipamentos)** organizada em 3 sub-abas independentes.
-  - **`<coc-live-sheet>`**: Ficha Viva reestruturada para eliminar a exibição simultânea de Página 1 + Página 2 + Barra Lateral:
-    - **HUD Superior Compacto**: Pílulas interativas de `PV`, `SAN`, `PM` e `Sorte` com ajuste rápido (`-`/`+`) e botão `⚡ Dano / Condições` que expande a calculadora de Lesão Grave/Insanidade apenas sob demanda.
-    - **6 Abas de Trabalho Focadas**: `📊 Atributos & Resumo`, `🎯 Perícias` (com visão padrão `⭐ Principais & Ocupacionais`, `🗂️ Por Categoria` e `📋 Lista Completa`), `⚔️ Combate & Armas` (com rolagem de ataque 1D100 e rolagem de dano da arma), `📖 Antecedentes` (em acordeão), `💼 Inventário & Finanças` e `🖨️ Folha Clássica (2P)`.
-  - **`<coc-roll-toast>` & `<coc-dice-drawer>`**: Substituem a antiga coluna lateral fixa de 330px por um Toast flutuante no canto inferior direito (com botões imediatos de *Forçar Rolagem* e *Gastar Sorte*) e uma gaveta lateral deslizante sob demanda.
-
-## 4. Status Final
-Todos os arquivos da arquitetura estão implementados em Angular, funcionando 100% offline/online e verificados com 59 testes automatizados passando.
+## 3. Status Final
+Todos os arquivos da arquitetura e design estão implementados, integrados, com 0 falhas no linter de design e verificados com 66 testes automatizados passando.

@@ -125,7 +125,7 @@
         curto: 'Antecedentes',
         titulo: 'Etapa 7: Antecedentes & Conexão-Chave',
         resumo: 'Construa a história do investigador usando os cartões recolhíveis ou sorteie 1D10 nas tabelas do livro.',
-        regraLivro: 'Páginas 40–45: Escolha uma ★ Conexão-Chave (Ideologia, Pessoas Significativas, Locais Importantes ou Pertences Queridos) que permite recuperar 1D6 de Sanidade (pág. 45).'
+        regraLivro: 'Páginas 40–45: Escolha uma Conexão-Chave (Ideologia, Pessoas Significativas, Locais Importantes ou Pertences Queridos) que permite recuperar 1D6 de Sanidade (pág. 45).'
       },
       {
         num: 8,
@@ -711,6 +711,20 @@
       }, 250);
     };
 
+    svc.baixarFichaOficialPDF = function (inv, opcoes = {}) {
+      const nomeLimpo = (((inv.identidade && inv.identidade.nome) || 'investigador'))
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') || 'investigador';
+      return $window.CoC7e.PDFExport.exportarNaFichaOficialAnexada(inv, opcoes).then(function (res) {
+        const sufixo = opcoes.achatarCampos ? '-impressao' : '-editavel';
+        svc.baixarBytes(res.bytes, 'ficha-oficial-coc7e-' + nomeLimpo + sufixo + '.pdf', 'application/pdf');
+        return res;
+      });
+    };
+
     svc.exportarJSON = function (inv) {
       const nomeLimpo = ((inv.identidade && inv.identidade.nome) || 'investigador')
         .toLowerCase()
@@ -782,12 +796,12 @@
         <div class="header-inner">
           <!-- Marca + Pílula Rápida do Investigador Ativo -->
           <div class="brand-block">
-            <div class="brand-seal" aria-hidden="true" title="Chamado de Cthulhu 7ª Edição">🐙</div>
+            <div class="brand-seal" aria-hidden="true" title="Chamado de Cthulhu 7ª Edição"><svg class="brand-seal-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polygon points="12,3 15,9 21,9 16,13 18,19 12,15 6,19 8,13 3,9 9,9"/></svg></div>
             <div>
               <h1 class="brand-title">Chamado de Cthulhu • 7ª Ed.</h1>
               <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-top:0.15rem;">
                 <button type="button" class="active-inv-pill" ng-click="$ctrl.state.modalAberto = 'investigadores'" title="Trocar ou gerenciar investigadores salvos">
-                  <span>👤 <strong>{{$ctrl.inv().identidade.nome || 'Sem Nome'}}</strong></span>
+                  <span><strong>{{$ctrl.inv().identidade.nome || 'Sem Nome'}}</strong></span>
                   <span style="color:var(--text-muted);">• {{$ctrl.inv().ocupacaoNome}}</span>
                   <span class="segmented-badge">{{$ctrl.state.investigadores.length}}</span>
                 </button>
@@ -800,36 +814,36 @@
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.modo === 'wizard'}"
               ng-click="$ctrl.state.modo = 'wizard'">
-              <span>🧭 Assistente</span>
+              <span>Assistente</span>
               <span class="segmented-badge">Etapa {{$ctrl.state.etapaWizard}}/9</span>
             </button>
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.modo === 'ficha'}"
               ng-click="$ctrl.state.modo = 'ficha'">
-              <span>📜 Ficha Viva</span>
+              <span>Ficha Viva</span>
             </button>
           </div>
 
           <!-- Ações Rápidas à Direita -->
           <div class="header-actions">
             <button type="button" class="btn" ng-click="$ctrl.state.gavetaDadosAberta = !$ctrl.state.gavetaDadosAberta" title="Abrir Rolador 1D100 e Histórico da Sessão">
-              🎲 Dados
+              Dados 1D100
               <span class="segmented-badge" ng-if="$ctrl.state.ultimaRolagem">
                 {{$ctrl.state.ultimaRolagem.d100.resultadoFinal}}
               </span>
             </button>
 
             <button type="button" class="btn" ng-if="$ctrl.state.modo === 'ficha'" ng-click="$ctrl.state.modalAberto = 'desenvolvimento'" title="Fase de Desenvolvimento do Investigador (pág. 94)">
-              🌟 Evoluir
+              Evolução
               <span class="segmented-badge" ng-if="$ctrl.contarMarcadas() > 0">{{$ctrl.contarMarcadas()}}</span>
             </button>
 
             <button type="button" class="btn btn-gold" ng-click="$ctrl.state.modalAberto = 'pdf'" title="Exportar PDF (AcroForm, Nativo 2 Páginas ou Impressão) e JSON">
-              🖨️ PDF / Exportar
+              PDF Oficial
             </button>
 
             <button type="button" class="btn btn-sm" ng-click="$ctrl.svc.alternarTema()" title="Alternar entre Modo Claro (Sépia 1920) e Modo Escuro">
-              {{$ctrl.state.tema === 'dark' ? '☀️' : '🌙'}}
+              {{$ctrl.state.tema === 'dark' ? 'Modo Claro' : 'Modo Escuro'}}
             </button>
           </div>
         </div>
@@ -1209,7 +1223,7 @@
           },
           {
             ok: Boolean(inv.antecedentes && inv.antecedentes.conexaoChave),
-            texto: 'Conexão-Chave definida nos Antecedentes (★ ' + ((inv.antecedentes && inv.antecedentes.conexaoChave) || 'Não definida') + ')'
+            texto: 'Conexão-Chave definida nos Antecedentes ( ' + ((inv.antecedentes && inv.antecedentes.conexaoChave) || 'Não definida') + ')'
           }
         ];
       };
@@ -1223,7 +1237,7 @@
               class="wizard-step-btn"
               ng-class="{'active': $ctrl.state.etapaWizard === e.num, 'completed': $ctrl.state.etapaWizard > e.num}"
               ng-click="$ctrl.irParaEtapa(e.num)">
-              <span class="step-num">{{$ctrl.state.etapaWizard > e.num ? '✓' : e.num}}</span>
+              <span class="step-num">{{$ctrl.state.etapaWizard > e.num ? '' : e.num}}</span>
               <span>{{e.curto}}</span>
             </button>
           </li>
@@ -1243,7 +1257,7 @@
           <div style="display:flex; gap:0.5rem; align-items:center;">
             <button type="button" class="btn btn-sm"
               ng-click="$ctrl.state.mostrarRegraLivroWizard = !$ctrl.state.mostrarRegraLivroWizard">
-              📖 {{$ctrl.state.mostrarRegraLivroWizard ? 'Ocultar Regra do Livro' : 'Ver Regra do Livro'}}
+              {{$ctrl.state.mostrarRegraLivroWizard ? 'Ocultar Regras do Livro' : 'Ver Regras do Livro'}}
             </button>
             <span class="attr-formula-badge">Passo {{$ctrl.state.etapaWizard}} de 9</span>
           </div>
@@ -1251,7 +1265,7 @@
 
         <!-- Progressive Disclosure: Nota de Regra do Livro recolhida por padrão -->
         <div class="alert" ng-if="$ctrl.state.mostrarRegraLivroWizard">
-          <strong>📚 Referência do Livro Básico (7ª Edição):</strong> {{$ctrl.etapaInfo().regraLivro}}
+          <strong>Referência do Livro Básico (7ª Edição):</strong> {{$ctrl.etapaInfo().regraLivro}}
         </div>
 
         <!-- ==================== ETAPA 1: IDENTIDADE ==================== -->
@@ -1317,20 +1331,20 @@
               <select class="form-select" style="padding:0.35rem 0.6rem; font-size:0.88rem;"
                 ng-model="$ctrl.inv().metodoAtributos"
                 ng-change="$ctrl.svc.salvarEstado()">
-                <option value="manual">✍️ Digitar Manualmente</option>
-                <option value="padrao">🎲 Rolagem Oficial (3D6×5 e (2D6+6)×5)</option>
-                <option value="distribuicao_livre">🎲 Rolar Pool e Distribuir Livremente</option>
-                <option value="arranjo_fixo">📐 Conjunto Fixo (40, 50, 50, 50, 60, 60, 70, 80)</option>
-                <option value="rolar_4d6_descartar_menor">🎲 Opcional: 4D6 descarta menor (pág. 48)</option>
+                <option value="manual">Digitar Manualmente</option>
+                <option value="padrao">Rolagem Oficial (3D6×5 e (2D6+6)×5)</option>
+                <option value="distribuicao_livre">Rolar Pool e Distribuir Livremente</option>
+                <option value="arranjo_fixo">Conjunto Fixo (40, 50, 50, 50, 60, 60, 70, 80)</option>
+                <option value="rolar_4d6_descartar_menor">Opcional: 4D6 descarta menor (pág. 48)</option>
               </select>
             </div>
 
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
               <button type="button" class="btn btn-primary btn-sm" ng-click="$ctrl.rolarTodosAtributos()">
-                🎲 Rolar Todas as 8 Características
+                Rolar Todas as Características
               </button>
               <button type="button" class="btn btn-sm" ng-if="$ctrl.inv().metodoAtributos === 'arranjo_fixo'" ng-click="$ctrl.aplicarArranjoPadrao()">
-                📐 Aplicar Conjunto Fixo
+                Aplicar Conjunto Fixo
               </button>
             </div>
           </div>
@@ -1371,7 +1385,7 @@
                 <button type="button" class="btn btn-sm"
                   ng-click="$ctrl.rolarAtributoUnico(atr.sigla)"
                   title="Rolar {{atr.formula}} para {{atr.sigla}}">
-                  🎲
+                  
                 </button>
               </div>
             </div>
@@ -1394,7 +1408,7 @@
                 ng-click="$ctrl.state.subAbaIdade = 'fisico'">
                 2. Penalidade Física
                 <span class="segmented-badge">
-                  {{$ctrl.somaReducaoFisica() === $ctrl.regraIdade().penalidadeFisicaTotal ? '✓' : ($ctrl.somaReducaoFisica() + '/' + $ctrl.regraIdade().penalidadeFisicaTotal)}}
+                  {{$ctrl.somaReducaoFisica() === $ctrl.regraIdade().penalidadeFisicaTotal ? '' : ($ctrl.somaReducaoFisica() + '/' + $ctrl.regraIdade().penalidadeFisicaTotal)}}
                 </span>
               </button>
               <button type="button" class="segmented-btn"
@@ -1427,7 +1441,7 @@
                   Sua faixa etária concede <strong>{{$ctrl.regraIdade().testesMelhoriaEDU}} teste(s) de melhoria de EDU</strong> (role 1D100; se for maior que EDU atual, soma +1D10).
                 </div>
                 <button type="button" class="btn btn-primary" ng-click="$ctrl.rolarTestesMelhoriaEDU()">
-                  🎲 Rolar {{$ctrl.regraIdade().testesMelhoriaEDU}} Teste(s) de EDU
+                  Rolar {{$ctrl.regraIdade().testesMelhoriaEDU}} Teste(s) de EDU
                 </button>
               </div>
 
@@ -1440,7 +1454,7 @@
 
               <div class="alert alert-success" ng-if="$ctrl.inv().idadeAjustes.historicoTestesEDU.length > 0">
                 <strong>Resultado das Rolagens de EDU:</strong>
-                <ul style="margin:0.35rem 0 0; padding-left:1.2rem; font-family:var(--font-mono); font-size:0.82rem;">
+                <ul style="margin:0.35rem 0 0; padding-left:1.2rem; font-variant-numeric:tabular-nums; font-size:0.82rem;">
                   <li ng-repeat="h in $ctrl.inv().idadeAjustes.historicoTestesEDU track by $index">
                     Teste #{{h.teste}}: 1D100 = {{h.rolagem1d100}} (vs EDU {{h.eduAntes}}) →
                     {{h.melhorou ? ('MELHOROU +' + h.ganho1d10 + ' (EDU = ' + h.eduDepois + ')') : 'Mantido'}}
@@ -1458,7 +1472,7 @@
             </h3>
 
             <div ng-if="$ctrl.regraIdade().penalidadeFisicaTotal === 0" class="alert alert-success">
-              ✓ Investigadores entre 20 e 39 anos não sofrem penalidades físicas nem redução de APA.
+               Investigadores entre 20 e 39 anos não sofrem penalidades físicas nem redução de APA.
             </div>
 
             <div ng-if="$ctrl.regraIdade().penalidadeFisicaTotal > 0">
@@ -1469,7 +1483,7 @@
                   <span ng-if="$ctrl.regraIdade().penalidadeAPA > 0"> (APA reduz automaticamente em -{{$ctrl.regraIdade().penalidadeAPA}}).</span>
                 </div>
                 <button type="button" class="btn btn-sm" ng-click="$ctrl.distribuirPenalidadeAutomatica()">
-                  ⚡ Distribuir Automaticamente
+                  Distribuir Automaticamente
                 </button>
               </div>
 
@@ -1497,7 +1511,7 @@
 
             <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
               <button type="button" class="btn btn-gold" ng-click="$ctrl.rolarSorteInicial()">
-                🎲 {{$ctrl.regraIdade().duplaSorte ? 'Rolar Sorte 2 Vezes (Jovem 15–19 anos)' : 'Rolar Sorte (3D6×5)'}}
+                 {{$ctrl.regraIdade().duplaSorte ? 'Rolar Sorte 2 Vezes (Jovem 15–19 anos)' : 'Rolar Sorte (3D6×5)'}}
               </button>
 
               <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -1525,7 +1539,7 @@
               <input type="checkbox" style="display:none;"
                 ng-model="$ctrl.inv().derivados.overrideManual"
                 ng-change="$ctrl.aoMudarCampo(false)" />
-              🔧 {{$ctrl.inv().derivados.overrideManual ? 'Modo Regras da Casa Ativo (Editável)' : 'Editar Manualmente (Regras da Casa)'}}
+               {{$ctrl.inv().derivados.overrideManual ? 'Modo Regras da Casa Ativo (Editável)' : 'Editar Manualmente (Regras da Casa)'}}
             </label>
           </div>
 
@@ -1606,7 +1620,7 @@
                 <option ng-repeat="o in $ctrl.OCUPACOES track by o.id" value="{{o.id}}">
                   {{o.nome}} — [{{o.formulaTexto}} | Crédito {{o.creditoMin}}–{{o.creditoMax}}%]
                 </option>
-                <option value="custom">✨ Ocupação Personalizada (Criar Nova)</option>
+                <option value="custom">Ocupação Personalizada (Criar Nova)</option>
               </select>
             </div>
 
@@ -1643,7 +1657,7 @@
 
             <div style="margin-bottom:0.65rem;">
               <input type="search" class="form-input" style="max-width:320px; padding:0.35rem 0.6rem; font-size:0.86rem;"
-                placeholder="🔍 Filtrar perícia para marcar como ocupacional..."
+                placeholder="Filtrar perícia para marcar como ocupacional..."
                 ng-model="$ctrl.state.buscaEscolhaOcupacional" />
             </div>
 
@@ -1693,44 +1707,44 @@
               <button type="button" class="filter-chip"
                 ng-class="{'active': $ctrl.state.filtroPericiaWizard === 'investidas' && !$ctrl.state.buscaPericiaWizard}"
                 ng-click="$ctrl.state.filtroPericiaWizard = 'investidas'; $ctrl.state.buscaPericiaWizard = ''">
-                📈 Com Pontos ({{$ctrl.contarPericiasFiltro('investidas')}})
+                Com Pontos ({{$ctrl.contarPericiasFiltro('investidas')}})
               </button>
               <button type="button" class="filter-chip"
                 ng-class="{'active': $ctrl.state.filtroPericiaWizard === 'investigacao' && !$ctrl.state.buscaPericiaWizard}"
                 ng-click="$ctrl.state.filtroPericiaWizard = 'investigacao'; $ctrl.state.buscaPericiaWizard = ''">
-                🔍 Investigação
+                Investigação
               </button>
               <button type="button" class="filter-chip"
                 ng-class="{'active': $ctrl.state.filtroPericiaWizard === 'combate' && !$ctrl.state.buscaPericiaWizard}"
                 ng-click="$ctrl.state.filtroPericiaWizard = 'combate'; $ctrl.state.buscaPericiaWizard = ''">
-                ⚔️ Combate
+                Combate
               </button>
               <button type="button" class="filter-chip"
                 ng-class="{'active': $ctrl.state.filtroPericiaWizard === 'social' && !$ctrl.state.buscaPericiaWizard}"
                 ng-click="$ctrl.state.filtroPericiaWizard = 'social'; $ctrl.state.buscaPericiaWizard = ''">
-                🗣️ Sociais &amp; Línguas
+                Sociais &amp; Línguas
               </button>
               <button type="button" class="filter-chip"
                 ng-class="{'active': $ctrl.state.filtroPericiaWizard === 'ciencias' && !$ctrl.state.buscaPericiaWizard}"
                 ng-click="$ctrl.state.filtroPericiaWizard = 'ciencias'; $ctrl.state.buscaPericiaWizard = ''">
-                🔬 Ciências &amp; Ofícios
+                Ciências &amp; Ofícios
               </button>
               <button type="button" class="filter-chip"
                 ng-class="{'active': $ctrl.state.filtroPericiaWizard === 'todas' && !$ctrl.state.buscaPericiaWizard}"
                 ng-click="$ctrl.state.filtroPericiaWizard = 'todas'; $ctrl.state.buscaPericiaWizard = ''">
-                📋 Todas ({{$ctrl.inv().pericias.length}})
+                Todas ({{$ctrl.inv().pericias.length}})
               </button>
             </div>
 
             <div style="display:flex; align-items:center; gap:0.45rem; flex-wrap:wrap;">
               <input type="search" class="form-input" style="padding:0.3rem 0.6rem; font-size:0.85rem; width:190px;"
-                placeholder="🔍 Buscar perícia..."
+                placeholder="Buscar perícia..."
                 ng-model="$ctrl.state.buscaPericiaWizard" />
               <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.state.modalAberto = 'especializacao'">
                 + Especialização
               </button>
               <button type="button" class="btn btn-sm" ng-click="$ctrl.state.mostrarOpcoesRegraPericia = !$ctrl.state.mostrarOpcoesRegraPericia">
-                ⚙️ Opções
+                Opções
               </button>
             </div>
           </div>
@@ -1771,7 +1785,7 @@
                       <strong>{{p.nome}}</strong>
                       <span class="badge-occ" ng-if="$ctrl.ehOcupacional(p)">OCUP</span>
                       <button type="button" class="btn btn-sm" style="padding:0.05rem 0.35rem; font-size:0.7rem;"
-                        ng-if="p.customAdded" ng-click="$ctrl.removerPericiaCustom(p)" title="Remover">✕</button>
+                        ng-if="p.customAdded" ng-click="$ctrl.removerPericiaCustom(p)" title="Remover"></button>
                     </div>
                     <div ng-if="p.especializavel || p.permiteRotuloCustom" style="margin-top:0.2rem;">
                       <input type="text" class="form-input" style="padding:0.15rem 0.4rem; font-size:0.76rem; width:180px;"
@@ -1780,7 +1794,7 @@
                         ng-change="$ctrl.atualizarRotuloEspecializacao(p)" />
                     </div>
                   </td>
-                  <td style="font-family:var(--font-mono);">{{p.base}}%</td>
+                  <td style="font-variant-numeric:tabular-nums;">{{p.base}}%</td>
                   <td>
                     <div style="display:inline-flex; align-items:center; gap:0.2rem;">
                       <button type="button" class="hud-mini-btn"
@@ -1809,10 +1823,10 @@
                         ng-click="$ctrl.ajustarPontoPericia(p, 'interesse', 5)">+5</button>
                     </div>
                   </td>
-                  <td style="font-family:var(--font-mono); font-weight:bold;">
+                  <td style="font-variant-numeric:tabular-nums; font-weight:bold;">
                     {{$ctrl.svc.obterTotalPericiaObj(p)}}%
                   </td>
-                  <td style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">
+                  <td style="font-variant-numeric:tabular-nums; font-size:0.8rem; color:var(--text-muted);">
                     {{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).metade}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).quinto}}%
                   </td>
                 </tr>
@@ -1828,28 +1842,28 @@
               <button type="button" class="segmented-btn"
                 ng-class="{'active': $ctrl.state.subAbaAntecedentesWizard === 'essenciais'}"
                 ng-click="$ctrl.state.subAbaAntecedentesWizard = 'essenciais'">
-                ★ Essenciais &amp; Personalidade (6)
+                Essenciais &amp; Personalidade (6)
               </button>
               <button type="button" class="segmented-btn"
                 ng-class="{'active': $ctrl.state.subAbaAntecedentesWizard === 'mythos'}"
                 ng-click="$ctrl.state.subAbaAntecedentesWizard = 'mythos'">
-                🐙 Cicatrizes, Fobias &amp; Mythos (4)
+                Cicatrizes, Fobias &amp; Mythos (4)
               </button>
             </div>
 
             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-              <label for="w-con-chave" style="font-size:0.85rem; font-weight:bold;">★ Conexão-Chave:</label>
+              <label for="w-con-chave" style="font-size:0.85rem; font-weight:bold;">Conexão-Chave:</label>
               <select id="w-con-chave" class="form-select" style="padding:0.3rem 0.5rem; font-size:0.85rem;"
                 ng-model="$ctrl.inv().antecedentes.conexaoChave"
                 ng-change="$ctrl.svc.salvarEstado()">
-                <option value="Ideologia / Crenças">★ Ideologia / Crenças</option>
-                <option value="Pessoas Significativas">★ Pessoas Significativas</option>
-                <option value="Locais Importantes">★ Locais Importantes</option>
-                <option value="Pertences Queridos">★ Pertences Queridos</option>
+                <option value="Ideologia / Crenças">Ideologia / Crenças</option>
+                <option value="Pessoas Significativas">Pessoas Significativas</option>
+                <option value="Locais Importantes">Locais Importantes</option>
+                <option value="Pertences Queridos">Pertences Queridos</option>
               </select>
 
               <button type="button" class="btn btn-primary btn-sm" ng-click="$ctrl.sortearTodosAntecedentes()">
-                🎲 Sortear Todos (1D10)
+                Sortear Todos (1D10)
               </button>
             </div>
           </div>
@@ -1863,15 +1877,15 @@
               <div class="lore-card-header" ng-click="$ctrl.state.cardAntecedenteAberto = ($ctrl.state.cardAntecedenteAberto === c.chave ? null : c.chave)">
                 <div>
                   <strong>{{c.titulo}}</strong>
-                  <span class="badge-occ" style="background:var(--accent-gold);" ng-if="$ctrl.inv().antecedentes.conexaoChave === c.titulo">★ CHAVE</span>
+                  <span class="badge-occ" style="background:var(--accent-gold);" ng-if="$ctrl.inv().antecedentes.conexaoChave === c.titulo"> CHAVE</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:0.35rem;">
                   <button type="button" class="btn btn-sm" ng-if="c.sorteavel"
                     ng-click="$event.stopPropagation(); $ctrl.sortearAntecedente(c.chave)">
-                    🎲 1D10
+                    Sortear 1D10
                   </button>
                   <span style="font-size:0.8rem; color:var(--text-muted);">
-                    {{$ctrl.state.cardAntecedenteAberto === c.chave ? '▲ Recolher' : '✏️ Editar'}}
+                    {{$ctrl.state.cardAntecedenteAberto === c.chave ? '▲ Recolher' : 'Editar'}}
                   </span>
                 </div>
               </div>
@@ -1901,17 +1915,17 @@
               <button type="button" class="segmented-btn"
                 ng-class="{'active': $ctrl.state.subAbaEtapa8 === 'financas'}"
                 ng-click="$ctrl.state.subAbaEtapa8 = 'financas'">
-                💰 Finanças 1920 ({{$ctrl.financas1920().padraoVida}})
+                Finanças 1920 ({{$ctrl.financas1920().padraoVida}})
               </button>
               <button type="button" class="segmented-btn"
                 ng-class="{'active': $ctrl.state.subAbaEtapa8 === 'armas'}"
                 ng-click="$ctrl.state.subAbaEtapa8 = 'armas'">
-                🔫 Armas ({{$ctrl.inv().armas.length}})
+                Armas ({{$ctrl.inv().armas.length}})
               </button>
               <button type="button" class="segmented-btn"
                 ng-class="{'active': $ctrl.state.subAbaEtapa8 === 'equipamentos'}"
                 ng-click="$ctrl.state.subAbaEtapa8 = 'equipamentos'">
-                🎒 Equipamentos ({{$ctrl.inv().equipamentos.length}})
+                Equipamentos ({{$ctrl.inv().equipamentos.length}})
               </button>
             </div>
           </div>
@@ -1974,12 +1988,12 @@
                   <tr ng-repeat="arma in $ctrl.inv().armas track by $index">
                     <td><strong>{{arma.nome}}</strong></td>
                     <td>{{arma.periciaNome}}</td>
-                    <td style="font-family:var(--font-mono); font-weight:bold;">
+                    <td style="font-variant-numeric:tabular-nums; font-weight:bold;">
                       {{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}}% /
                       {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}}% /
                       {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}%
                     </td>
-                    <td style="font-family:var(--font-mono);">
+                    <td style="font-variant-numeric:tabular-nums;">
                       {{$ctrl.R.formatarDanoArma(arma.danoBase, arma.somaDX, $ctrl.inv().derivados.danoExtra)}}
                     </td>
                     <td>{{arma.alcance}}</td>
@@ -2017,7 +2031,7 @@
               <span ng-repeat="item in $ctrl.inv().equipamentos track by $index"
                 style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.3rem 0.65rem; background:var(--bg-paper); border:1px solid var(--border-strong); border-radius:4px; font-size:0.86rem;">
                 {{item}}
-                <button type="button" style="border:none; background:none; cursor:pointer; color:var(--accent-crimson); font-weight:bold;" ng-click="$ctrl.removerEquipamento($index)">✕</button>
+                <button type="button" style="border:none; background:none; cursor:pointer; color:var(--accent-crimson); font-weight:bold;" ng-click="$ctrl.removerEquipamento($index)"></button>
               </span>
             </div>
           </div>
@@ -2026,23 +2040,23 @@
         <!-- ==================== ETAPA 9: REVISÃO & CONCLUSÃO ==================== -->
         <div ng-if="$ctrl.state.etapaWizard === 9">
           <div class="alert alert-success">
-            <strong>📋 Checklist Automático de Regras (7ª Edição):</strong>
+            <strong>Checklist Automático de Regras (7ª Edição):</strong>
             <ul style="margin:0.4rem 0 0; padding-left:1.25rem;">
               <li ng-repeat="ck in $ctrl.obterChecksRevisao() track by $index">
-                {{ck.ok ? '✅' : '⚠️'}} {{ck.texto}}
+                {{ck.ok ? '' : '️'}} {{ck.texto}}
               </li>
             </ul>
           </div>
 
           <div style="display:flex; flex-wrap:wrap; gap:0.65rem; margin-bottom:1.1rem;">
             <button type="button" class="btn btn-primary" ng-click="$ctrl.state.modo = 'ficha'">
-              📜 Abrir Ficha Viva de Jogo (Interface Focada + Rolador 1D100)
+              Abrir Ficha Viva de Jogo
             </button>
             <button type="button" class="btn btn-gold" ng-click="$ctrl.state.modalAberto = 'pdf'">
-              🖨️ Exportar PDF (2 Páginas / Ficha Editável Oficial)
+              Baixar Ficha Oficial (PDF Editável)
             </button>
             <button type="button" class="btn" ng-click="$ctrl.svc.exportarJSON($ctrl.inv())">
-              💾 Baixar JSON
+              Baixar JSON
             </button>
           </div>
 
@@ -2051,7 +2065,7 @@
             <p style="margin:0 0 0.45rem;">
               <strong>{{$ctrl.inv().identidade.nome}}</strong> — {{$ctrl.inv().ocupacaoNome}}, {{$ctrl.inv().identidade.idade}} anos ({{$ctrl.inv().identidade.residencia}})
             </p>
-            <p style="margin:0; font-family:var(--font-mono); font-size:0.86rem;">
+            <p style="margin:0; font-variant-numeric:tabular-nums; font-size:0.86rem;">
               FOR {{$ctrl.inv().atributosFinais.FOR}}% | CON {{$ctrl.inv().atributosFinais.CON}}% | TAM {{$ctrl.inv().atributosFinais.TAM}}% | DES {{$ctrl.inv().atributosFinais.DES}}% |
               APA {{$ctrl.inv().atributosFinais.APA}}% | INT {{$ctrl.inv().atributosFinais.INT}}% | POD {{$ctrl.inv().atributosFinais.POD}}% | EDU {{$ctrl.inv().atributosFinais.EDU}}%
             </p>
@@ -2072,7 +2086,7 @@
               Próxima Etapa →
             </button>
             <button type="button" class="btn btn-primary" ng-if="$ctrl.state.etapaWizard === 9" ng-click="$ctrl.state.modo = 'ficha'">
-              ✓ Concluir e Abrir Ficha Viva
+              Concluir e Abrir Ficha Viva
             </button>
           </div>
         </footer>
@@ -2243,7 +2257,7 @@
           <!-- Pílula PV -->
           <div class="hud-vital-pill" ng-class="{'critical-state': $ctrl.inv().derivados.lesaoGrave || $ctrl.inv().derivados.morrendo}">
             <div class="hud-vital-info">
-              <span class="hud-vital-label">❤️ Vida (PV)</span>
+              <span class="hud-vital-label">Pontos de Vida (PV)</span>
               <span class="hud-vital-val">{{$ctrl.inv().derivados.pvAtual}} / {{$ctrl.inv().derivados.pvMax}}</span>
             </div>
             <div class="hud-vital-btns">
@@ -2258,7 +2272,7 @@
               <button type="button" class="roll-trigger-btn hud-vital-label"
                 ng-click="$ctrl.svc.rolarPericiaOuAtributo('Sanidade (SAN)', $ctrl.inv().derivados.sanAtual, {ehTesteSanidade: true})"
                 title="Clique para Rolar Teste de Sanidade (1D100)">
-                🧠 Sanidade 🎲
+                Sanidade (SAN)
               </button>
               <span class="hud-vital-val">{{$ctrl.inv().derivados.sanAtual}} / {{$ctrl.inv().derivados.sanMax}}</span>
             </div>
@@ -2271,7 +2285,7 @@
           <!-- Pílula Magia -->
           <div class="hud-vital-pill">
             <div class="hud-vital-info">
-              <span class="hud-vital-label">✨ Magia (PM)</span>
+              <span class="hud-vital-label">Pontos de Magia (PM)</span>
               <span class="hud-vital-val">{{$ctrl.inv().derivados.pmAtual}} / {{$ctrl.inv().derivados.pmMax}}</span>
             </div>
             <div class="hud-vital-btns">
@@ -2286,7 +2300,7 @@
               <button type="button" class="roll-trigger-btn hud-vital-label"
                 ng-click="$ctrl.svc.rolarPericiaOuAtributo('Sorte', $ctrl.inv().derivados.sorteAtual, {ehTesteSorte: true})"
                 title="Clique para Rolar Teste de Sorte (1D100)">
-                🍀 Sorte 🎲
+                Sorte
               </button>
               <span class="hud-vital-val">{{$ctrl.inv().derivados.sorteAtual}}%</span>
             </div>
@@ -2302,7 +2316,7 @@
               ng-class="{'btn-danger': $ctrl.state.painelVitaisAberto}"
               ng-click="$ctrl.state.painelVitaisAberto = !$ctrl.state.painelVitaisAberto"
               title="Expandir calculadora de Golpe Único (Lesão Grave), Perda de Sanidade e Condições">
-              ⚡ {{$ctrl.state.painelVitaisAberto ? 'Fechar Condições' : 'Dano / Condições'}}
+               {{$ctrl.state.painelVitaisAberto ? 'Fechar Condições' : 'Dano / Condições'}}
             </button>
           </div>
         </section>
@@ -2311,7 +2325,7 @@
         <div class="deco-frame" style="margin-bottom:0.9rem; padding:0.9rem;" ng-if="$ctrl.state.painelVitaisAberto">
           <div class="grid-2">
             <div>
-              <strong style="display:block; margin-bottom:0.4rem;">🩸 Sofrer Golpe Único (Verifica Lesão Grave ≥ ½ PV Máx):</strong>
+              <strong style="display:block; margin-bottom:0.4rem;">Sofrer Golpe Único (Verifica Lesão Grave ≥ ½ PV Máx):</strong>
               <div style="display:flex; gap:0.4rem; align-items:center; margin-bottom:0.5rem;">
                 <input type="number" min="1" max="99" class="form-input" style="width:80px; padding:0.3rem;" ng-model="$ctrl.danoGolpeInput" />
                 <button type="button" class="btn btn-danger btn-sm" ng-click="$ctrl.aplicarGolpeUnico()">Aplicar Golpe em PV</button>
@@ -2330,7 +2344,7 @@
             </div>
 
             <div>
-              <strong style="display:block; margin-bottom:0.4rem;">🌀 Perder Sanidade de Uma Vez (Verifica ≥ 5 pts = Insanidade Temp.):</strong>
+              <strong style="display:block; margin-bottom:0.4rem;">Perda de Sanidade (Verifica ≥ 5 pts = Insanidade Temp.):</strong>
               <div style="display:flex; gap:0.4rem; align-items:center; margin-bottom:0.5rem;">
                 <input type="number" min="1" max="99" class="form-input" style="width:80px; padding:0.3rem;" ng-model="$ctrl.perdaSanInput" />
                 <button type="button" class="btn btn-primary btn-sm" ng-click="$ctrl.aplicarPerdaSanidade()">Registrar Perda SAN</button>
@@ -2357,32 +2371,32 @@
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.abaFicha === 'resumo'}"
               ng-click="$ctrl.state.abaFicha = 'resumo'">
-              📊 Atributos &amp; Resumo
+              Atributos &amp; Resumo
             </button>
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.abaFicha === 'pericias'}"
               ng-click="$ctrl.state.abaFicha = 'pericias'">
-              🎯 Perícias
+              Perícias
             </button>
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.abaFicha === 'combate'}"
               ng-click="$ctrl.state.abaFicha = 'combate'">
-              ⚔️ Combate ({{$ctrl.inv().armas.length}})
+              Combate ({{$ctrl.inv().armas.length}})
             </button>
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.abaFicha === 'antecedentes'}"
               ng-click="$ctrl.state.abaFicha = 'antecedentes'">
-              📖 Antecedentes
+              Antecedentes
             </button>
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.abaFicha === 'inventario'}"
               ng-click="$ctrl.state.abaFicha = 'inventario'">
-              💼 Inventário &amp; Finanças
+              Inventário &amp; Finanças
             </button>
             <button type="button" class="segmented-btn"
               ng-class="{'active': $ctrl.state.abaFicha === 'folha2p'}"
               ng-click="$ctrl.state.abaFicha = 'folha2p'">
-              🖨️ Folha Clássica (2P)
+              Folha Oficial (2P)
             </button>
           </div>
 
@@ -2411,9 +2425,9 @@
                     <div>
                       <button type="button" class="roll-trigger-btn"
                         ng-click="$ctrl.svc.rolarPericiaOuAtributo(atr.nome + ' (' + atr.sigla + ')', $ctrl.inv().atributosFinais[atr.sigla])">
-                        <strong style="font-size:0.95rem;">🎲 {{atr.sigla}}</strong>
+                        <strong style="font-size:0.95rem;">{{atr.sigla}}</strong>
                       </button>
-                      <div style="font-family:var(--font-mono); font-size:1.25rem; font-weight:bold;">
+                      <div style="font-variant-numeric:tabular-nums; font-size:1.25rem; font-weight:bold;">
                         {{$ctrl.inv().atributosFinais[atr.sigla]}}%
                       </div>
                     </div>
@@ -2434,19 +2448,19 @@
                 <div style="display:flex; flex-wrap:wrap; gap:0.45rem; margin-top:0.75rem;">
                   <button type="button" class="btn btn-sm"
                     ng-click="$ctrl.svc.rolarPericiaOuAtributo('Ideia (INT)', $ctrl.inv().atributosFinais.INT)">
-                    💡 Ideia ({{$ctrl.inv().atributosFinais.INT}}%)
+                    Ideia ({{$ctrl.inv().atributosFinais.INT}}%)
                   </button>
                   <button type="button" class="btn btn-sm"
                     ng-click="$ctrl.svc.rolarPericiaOuAtributo('Conhecimento (EDU)', $ctrl.inv().atributosFinais.EDU)">
-                    🎓 Conhecimento ({{$ctrl.inv().atributosFinais.EDU}}%)
+                    Conhecimento ({{$ctrl.inv().atributosFinais.EDU}}%)
                   </button>
                   <button type="button" class="btn btn-sm"
                     ng-click="$ctrl.svc.rolarPericiaOuAtributo('Sorte', $ctrl.inv().derivados.sorteAtual, {ehTesteSorte: true})">
-                    🍀 Sorte ({{$ctrl.inv().derivados.sorteAtual}}%)
+                    Sorte ({{$ctrl.inv().derivados.sorteAtual}}%)
                   </button>
                   <button type="button" class="btn btn-sm"
                     ng-click="$ctrl.svc.rolarPericiaOuAtributo('Sanidade (SAN)', $ctrl.inv().derivados.sanAtual, {ehTesteSanidade: true})">
-                    🧠 Sanidade ({{$ctrl.inv().derivados.sanAtual}}%)
+                    Sanidade ({{$ctrl.inv().derivados.sanAtual}}%)
                   </button>
                 </div>
               </div>
@@ -2457,7 +2471,7 @@
                   <h3 class="sheet-section-title">
                     <span>Dossiê do Investigador (1920s)</span>
                     <button type="button" class="btn btn-sm" style="padding:0.1rem 0.45rem; font-size:0.72rem;"
-                      ng-click="$ctrl.state.modo = 'wizard'; $ctrl.state.etapaWizard = 1">✏️ Editar</button>
+                      ng-click="$ctrl.state.modo = 'wizard'; $ctrl.state.etapaWizard = 1">Editar</button>
                   </h3>
                   <div class="grid-2" style="font-size:0.88rem; gap:0.4rem;">
                     <div><strong>Nome:</strong> {{$ctrl.inv().identidade.nome}}</div>
@@ -2465,7 +2479,7 @@
                     <div><strong>Idade / Sexo:</strong> {{$ctrl.inv().identidade.idade}} anos • {{$ctrl.inv().identidade.sexo}}</div>
                     <div><strong>Residência:</strong> {{$ctrl.inv().identidade.residencia}}</div>
                     <div><strong>Nascimento:</strong> {{$ctrl.inv().identidade.nascimento}}</div>
-                    <div><strong>★ Conexão-Chave:</strong> {{$ctrl.inv().antecedentes.conexaoChave}}</div>
+                    <div><strong>Conexão-Chave:</strong> {{$ctrl.inv().antecedentes.conexaoChave}}</div>
                   </div>
                 </div>
 
@@ -2479,9 +2493,9 @@
                     <div class="focus-skill-card is-occ" ng-repeat="p in $ctrl.topPericiasResumo() track by p.id">
                       <button type="button" class="roll-trigger-btn"
                         ng-click="$ctrl.svc.rolarPericiaOuAtributo(p.nome, $ctrl.svc.obterTotalPericiaObj(p), {periciaId: p.id})">
-                        <strong>🎲 {{p.nome}}</strong>
+                        <strong>{{p.nome}}</strong>
                       </button>
-                      <span style="font-family:var(--font-mono); font-weight:bold;">
+                      <span style="font-variant-numeric:tabular-nums; font-weight:bold;">
                         {{$ctrl.svc.obterTotalPericiaObj(p)}}%
                         <small style="color:var(--text-muted);">({{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).metade}}/{{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).quinto}})</small>
                       </span>
@@ -2507,24 +2521,24 @@
                 <button type="button" class="segmented-btn"
                   ng-class="{'active': $ctrl.state.modoVisaoPericiasFicha === 'categorias' && !$ctrl.state.buscaPericiaFicha}"
                   ng-click="$ctrl.state.modoVisaoPericiasFicha = 'categorias'; $ctrl.state.buscaPericiaFicha = ''">
-                  🗂️ Por Categoria
+                  Por Categoria
                 </button>
                 <button type="button" class="segmented-btn"
                   ng-class="{'active': $ctrl.state.modoVisaoPericiasFicha === 'grade3col' || $ctrl.state.buscaPericiaFicha}"
                   ng-click="$ctrl.state.modoVisaoPericiasFicha = 'grade3col'">
-                  📋 Lista Completa ({{$ctrl.inv().pericias.length}})
+                  Lista Completa ({{$ctrl.inv().pericias.length}})
                 </button>
               </div>
 
               <!-- Busca + Modo Edição + Especialização -->
               <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                 <input type="search" class="form-input" style="padding:0.3rem 0.6rem; font-size:0.85rem; width:210px;"
-                  placeholder="🔍 Buscar qualquer perícia..."
+                  placeholder="Buscar qualquer perícia..."
                   ng-model="$ctrl.state.buscaPericiaFicha" />
 
                 <label class="filter-chip" ng-class="{'active': $ctrl.state.modoEdicaoPericiasFicha}" style="cursor:pointer;">
                   <input type="checkbox" style="display:none;" ng-model="$ctrl.state.modoEdicaoPericiasFicha" />
-                  ✏️ {{$ctrl.state.modoEdicaoPericiasFicha ? 'Concluir Edição' : 'Editar Valores'}}
+                  ️ {{$ctrl.state.modoEdicaoPericiasFicha ? 'Concluir Edição' : 'Editar Valores'}}
                 </label>
 
                 <button type="button" class="btn btn-sm" ng-click="$ctrl.state.modalAberto = 'especializacao'">
@@ -2536,7 +2550,7 @@
             <!-- Visão 1: Cartões de Destaque (Foco sem sobrecarga!) -->
             <div ng-if="$ctrl.state.modoVisaoPericiasFicha === 'destaque' && !$ctrl.state.buscaPericiaFicha">
               <p class="form-hint" style="margin:0 0 0.65rem;">
-                Exibindo suas perícias ocupacionais, marcadas com <code>[✓]</code> ou com 25%+. Use a busca acima ou clique em <strong>Lista Completa</strong> para ver perícia com valor base menor.
+                Exibindo suas perícias ocupacionais, marcadas com <code>[]</code> ou com 25%+. Use a busca acima ou clique em <strong>Lista Completa</strong> para ver perícia com valor base menor.
               </p>
               <div class="focus-skills-grid">
                 <div class="focus-skill-card" ng-repeat="p in $ctrl.periciasDestaque() track by p.id" ng-class="{'is-occ': $ctrl.ehOcupacional(p)}">
@@ -2546,7 +2560,7 @@
                       title="Marcar perícia usada com sucesso para a Fase de Desenvolvimento" />
                     <button type="button" class="roll-trigger-btn"
                       ng-click="$ctrl.svc.rolarPericiaOuAtributo(p.nome, $ctrl.svc.obterTotalPericiaObj(p), {periciaId: p.id})">
-                      <strong>🎲 {{p.nome}}</strong>
+                      <strong>{{p.nome}}</strong>
                     </button>
                   </div>
                   <div class="live-skill-right">
@@ -2568,11 +2582,11 @@
             <!-- Visão 2: Por Categoria -->
             <div ng-if="$ctrl.state.modoVisaoPericiasFicha === 'categorias' && !$ctrl.state.buscaPericiaFicha">
               <div class="filter-chips-row" style="margin-bottom:0.85rem;">
-                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'investigacao'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'investigacao'">🔍 Investigação &amp; Percepção</button>
-                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'combate'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'combate'">⚔️ Combate &amp; Armas</button>
-                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'social'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'social'">🗣️ Interpessoal &amp; Idiomas</button>
-                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'ciencias'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'ciencias'">🔬 Ciências, Artes &amp; Medicina</button>
-                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'acao'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'acao'">🏃 Ação, Furtividade &amp; Veículos</button>
+                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'investigacao'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'investigacao'">Investigação &amp; Percepção</button>
+                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'combate'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'combate'">Combate &amp; Armas</button>
+                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'social'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'social'">️ Interpessoal &amp; Idiomas</button>
+                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'ciencias'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'ciencias'"> Ciências, Artes &amp; Medicina</button>
+                <button type="button" class="filter-chip" ng-class="{'active': $ctrl.state.categoriaPericiaFicha === 'acao'}" ng-click="$ctrl.state.categoriaPericiaFicha = 'acao'"> Ação, Furtividade &amp; Veículos</button>
               </div>
 
               <div class="focus-skills-grid">
@@ -2582,7 +2596,7 @@
                       ng-model="p.marcada" ng-change="$ctrl.svc.salvarEstado()" />
                     <button type="button" class="roll-trigger-btn"
                       ng-click="$ctrl.svc.rolarPericiaOuAtributo(p.nome, $ctrl.svc.obterTotalPericiaObj(p), {periciaId: p.id})">
-                      <strong>🎲 {{p.nome}}</strong>
+                      <strong>{{p.nome}}</strong>
                     </button>
                   </div>
                   <div class="live-skill-right">
@@ -2610,7 +2624,7 @@
                   <span style="width:15px; display:inline-block;" ng-if="!p.marcavel"></span>
                   <button type="button" class="roll-trigger-btn"
                     ng-click="$ctrl.svc.rolarPericiaOuAtributo(p.nome, $ctrl.svc.obterTotalPericiaObj(p), {periciaId: p.id})">
-                    <span>🎲 {{p.nome}}</span>
+                    <span>{{p.nome}}</span>
                   </button>
                 </div>
                 <div class="live-skill-right">
@@ -2648,7 +2662,7 @@
                   <span class="vital-big-number">{{$ctrl.svc.obterTotalPericia($ctrl.inv(), 'esquiva')}}%</span>
                   <button type="button" class="btn btn-sm btn-primary"
                     ng-click="$ctrl.svc.rolarPericiaOuAtributo('Esquiva', $ctrl.svc.obterTotalPericia($ctrl.inv(), 'esquiva'), {periciaId: 'esquiva'})">
-                    🎲 Esquivar
+                    Esquivar
                   </button>
                 </div>
               </div>
@@ -2683,20 +2697,20 @@
                       <td>
                         <button type="button" class="roll-trigger-btn"
                           ng-click="$ctrl.svc.rolarPericiaOuAtributo('Ataque: ' + arma.nome, $ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId), {periciaId: arma.periciaId})">
-                          <strong>🎯 {{arma.nome}}</strong>
+                          <strong>{{arma.nome}}</strong>
                         </button>
                       </td>
                       <td>{{arma.periciaNome}}</td>
-                      <td style="font-family:var(--font-mono); font-weight:bold;">
+                      <td style="font-variant-numeric:tabular-nums; font-weight:bold;">
                         {{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}}% /
                         {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}}% /
                         {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}%
                       </td>
                       <td>
-                        <button type="button" class="btn btn-sm" style="font-family:var(--font-mono);"
+                        <button type="button" class="btn btn-sm" style="font-variant-numeric:tabular-nums;"
                           ng-click="$ctrl.svc.rolarDanoArma(arma)"
                           title="Clique para rolar o dano desta arma">
-                          💥 {{$ctrl.R.formatarDanoArma(arma.danoBase, arma.somaDX, $ctrl.inv().derivados.danoExtra)}}
+                          Dano: {{$ctrl.R.formatarDanoArma(arma.danoBase, arma.somaDX, $ctrl.inv().derivados.danoExtra)}}
                         </button>
                       </td>
                       <td>{{arma.alcance}}</td>
@@ -2730,7 +2744,7 @@
               </div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <span class="badge-occ" style="background:var(--accent-gold); font-size:0.82rem; padding:0.25rem 0.6rem;">
-                  ★ Conexão-Chave: {{$ctrl.inv().antecedentes.conexaoChave}}
+                  Conexão-Chave: {{$ctrl.inv().antecedentes.conexaoChave}}
                 </span>
               </div>
             </div>
@@ -2743,10 +2757,10 @@
                 <div class="lore-card-header" ng-click="$ctrl.state.cardAntecedenteAberto = ($ctrl.state.cardAntecedenteAberto === c.chave ? null : c.chave)">
                   <div>
                     <strong>{{c.titulo}}</strong>
-                    <span class="badge-occ" style="background:var(--accent-gold);" ng-if="$ctrl.inv().antecedentes.conexaoChave === c.titulo">★ CHAVE</span>
+                    <span class="badge-occ" style="background:var(--accent-gold);" ng-if="$ctrl.inv().antecedentes.conexaoChave === c.titulo"> CHAVE</span>
                   </div>
                   <span style="font-size:0.78rem; color:var(--text-muted);">
-                    {{$ctrl.state.cardAntecedenteAberto === c.chave ? '▲ Fechar' : '✏️ Expandir'}}
+                    {{$ctrl.state.cardAntecedenteAberto === c.chave ? '▲ Fechar' : '️ Expandir'}}
                   </span>
                 </div>
 
@@ -2775,7 +2789,7 @@
               <!-- Equipamentos -->
               <div class="sheet-section-box">
                 <h3 class="sheet-section-title">
-                  <span>🎒 Equipamentos &amp; Pertences</span>
+                  <span>Equipamentos &amp; Pertences</span>
                   <span>{{$ctrl.inv().equipamentos.length}} item(ns)</span>
                 </h3>
                 <div style="display:flex; gap:0.4rem; margin-bottom:0.75rem;">
@@ -2787,7 +2801,7 @@
                     style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.28rem 0.6rem; background:var(--bg-paper); border:1px solid var(--border-strong); border-radius:4px; font-size:0.85rem;">
                     {{eq}}
                     <button type="button" style="border:none; background:none; cursor:pointer; color:var(--accent-crimson); font-weight:bold;"
-                      ng-click="$ctrl.inv().equipamentos.splice($index, 1); $ctrl.svc.salvarEstado()">✕</button>
+                      ng-click="$ctrl.inv().equipamentos.splice($index, 1); $ctrl.svc.salvarEstado()"></button>
                   </span>
                 </div>
               </div>
@@ -2795,7 +2809,7 @@
               <!-- Finanças 1920 -->
               <div class="sheet-section-box">
                 <h3 class="sheet-section-title">
-                  <span>💰 Dinheiro &amp; Recursos (1920s)</span>
+                  <span>Dinheiro &amp; Recursos (1920s)</span>
                   <span>Crédito: {{$ctrl.financas1920().nivelCredito}}% ({{$ctrl.financas1920().padraoVida}})</span>
                 </h3>
                 <div class="grid-3" style="margin-bottom:0.65rem;">
@@ -2832,7 +2846,7 @@
             <!-- Companheiros Investigadores -->
             <div class="sheet-section-box" style="margin-top:1rem;">
               <h3 class="sheet-section-title">
-                <span>🤝 Companheiros Investigadores</span>
+                <span>Companheiros Investigadores</span>
                 <span>{{$ctrl.inv().companheiros.length}} aliado(s)</span>
               </h3>
               <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
@@ -2845,7 +2859,7 @@
                   <div style="display:flex; justify-content:space-between; align-items:center;">
                     <strong>{{comp.nome}}</strong>
                     <button type="button" class="btn btn-sm btn-danger" style="padding:0.05rem 0.35rem;"
-                      ng-click="$ctrl.inv().companheiros.splice($index, 1); $ctrl.svc.salvarEstado()">✕</button>
+                      ng-click="$ctrl.inv().companheiros.splice($index, 1); $ctrl.svc.salvarEstado()"></button>
                   </div>
                   <span class="form-hint">{{comp.notas}}</span>
                 </div>
@@ -2879,19 +2893,19 @@
         ng-if="$ctrl.state.toastRolagemVisivel && $ctrl.state.ultimaRolagem && !$ctrl.state.gavetaDadosAberta"
         aria-live="assertive">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-          <strong style="font-size:0.86rem;">🎲 {{$ctrl.state.ultimaRolagem.rotulo}}</strong>
+          <strong style="font-size:0.86rem;">{{$ctrl.state.ultimaRolagem.rotulo}}</strong>
           <div style="display:flex; gap:0.35rem;">
             <button type="button" class="btn btn-sm" style="padding:0.1rem 0.45rem; font-size:0.72rem;"
               ng-click="$ctrl.state.gavetaDadosAberta = true">Histórico</button>
             <button type="button" class="btn btn-sm" style="padding:0.1rem 0.4rem; font-size:0.72rem;"
-              ng-click="$ctrl.state.toastRolagemVisivel = false">✕</button>
+              ng-click="$ctrl.state.toastRolagemVisivel = false"></button>
           </div>
         </div>
 
         <div class="roll-result-banner {{$ctrl.state.ultimaRolagem.avaliacao.classeCss}}" style="margin-bottom:0.4rem; padding:0.55rem;">
           <div class="roll-d100-number" style="font-size:1.85rem;">{{$ctrl.state.ultimaRolagem.d100.resultadoFinal}}</div>
           <div style="font-weight:bold; font-size:0.9rem;">{{$ctrl.state.ultimaRolagem.avaliacao.rotulo}}</div>
-          <div style="font-size:0.74rem; font-family:var(--font-mono);" ng-if="$ctrl.state.ultimaRolagem.d100.tipoModificador !== 'DANO'">
+          <div style="font-size:0.74rem; font-variant-numeric:tabular-nums;" ng-if="$ctrl.state.ultimaRolagem.d100.tipoModificador !== 'DANO'">
             Alvo: {{$ctrl.state.ultimaRolagem.avaliacao.regular}}% | ½: {{$ctrl.state.ultimaRolagem.avaliacao.dificil}}% | ⅕: {{$ctrl.state.ultimaRolagem.avaliacao.extremo}}%
           </div>
         </div>
@@ -2901,13 +2915,13 @@
           <button type="button" class="btn btn-sm btn-danger" style="flex:1;"
             ng-if="!$ctrl.state.ultimaRolagem.forcada && !$ctrl.state.ultimaRolagem.ehTesteSorte && !$ctrl.state.ultimaRolagem.ehTesteSanidade"
             ng-click="$ctrl.svc.forcarUltimaRolagem()">
-            🔥 Forçar Rolagem (Push)
+            Forçar Rolagem (Push)
           </button>
 
           <button type="button" class="btn btn-sm btn-gold" style="flex:1;"
             ng-if="$ctrl.state.ultimaRolagem.podeGastarSorte && $ctrl.state.ultimaRolagem.sorteParaRegular > 0 && $ctrl.inv().derivados.sorteAtual >= $ctrl.state.ultimaRolagem.sorteParaRegular"
             ng-click="$ctrl.svc.gastarSorteUltimaRolagem('REGULAR')">
-            🍀 Gastar {{$ctrl.state.ultimaRolagem.sorteParaRegular}} Sorte → Regular
+            Gastar {{$ctrl.state.ultimaRolagem.sorteParaRegular}} Sorte → Regular
           </button>
         </div>
       </aside>
@@ -2930,8 +2944,8 @@
       <div class="dice-drawer-backdrop no-print" ng-if="$ctrl.state.gavetaDadosAberta" ng-click="$ctrl.state.gavetaDadosAberta = false"></div>
       <aside class="dice-drawer no-print" ng-if="$ctrl.state.gavetaDadosAberta" aria-label="Rolador 1D100 e Histórico da Sessão">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border-strong); padding-bottom:0.6rem; margin-bottom:0.85rem;">
-          <h2 style="margin:0; font-size:1.15rem;">🎲 Rolador 1D100 &amp; Log</h2>
-          <button type="button" class="btn btn-sm" ng-click="$ctrl.state.gavetaDadosAberta = false">✕ Fechar</button>
+          <h2 style="margin:0; font-size:1.15rem;">Rolador 1D100 &amp; Histórico</h2>
+          <button type="button" class="btn btn-sm" ng-click="$ctrl.state.gavetaDadosAberta = false"> Fechar</button>
         </div>
 
         <!-- Dados de Bônus e Penalidade -->
@@ -2948,7 +2962,7 @@
 
         <button type="button" class="btn btn-primary" style="width:100%; margin-bottom:0.85rem;"
           ng-click="$ctrl.svc.rolarPericiaOuAtributo('Rolagem Livre 1D100', 50)">
-          🎲 Rolar 1D100 Livre (Alvo 50%)
+          Rolar 1D100 Livre (Alvo 50%)
         </button>
 
         <!-- Resultado Atual Detalhado -->
@@ -2957,7 +2971,7 @@
             <div style="font-size:0.82rem; font-weight:bold;">{{$ctrl.state.ultimaRolagem.rotulo}}</div>
             <div class="roll-d100-number">{{$ctrl.state.ultimaRolagem.d100.resultadoFinal}}</div>
             <div style="font-weight:bold; font-size:0.95rem;">{{$ctrl.state.ultimaRolagem.avaliacao.rotulo}}</div>
-            <div style="font-size:0.75rem; font-family:var(--font-mono); margin-top:0.2rem;" ng-if="$ctrl.state.ultimaRolagem.d100.tipoModificador !== 'DANO'">
+            <div style="font-size:0.75rem; font-variant-numeric:tabular-nums; margin-top:0.2rem;" ng-if="$ctrl.state.ultimaRolagem.d100.tipoModificador !== 'DANO'">
               Reg: {{$ctrl.state.ultimaRolagem.avaliacao.regular}}% | Dif: {{$ctrl.state.ultimaRolagem.avaliacao.dificil}}% | Ext: {{$ctrl.state.ultimaRolagem.avaliacao.extremo}}%
             </div>
           </div>
@@ -2966,13 +2980,13 @@
           <button type="button" class="btn btn-danger btn-sm" style="width:100%; margin-bottom:0.45rem;"
             ng-if="!$ctrl.state.ultimaRolagem.avaliacao.sucesso && !$ctrl.state.ultimaRolagem.forcada && !$ctrl.state.ultimaRolagem.ehTesteSorte && !$ctrl.state.ultimaRolagem.ehTesteSanidade"
             ng-click="$ctrl.svc.forcarUltimaRolagem()">
-            🔥 Forçar a Rolagem (Push Roll — pág. 87)
+            Forçar a Rolagem (Push Roll — pág. 87)
           </button>
 
           <!-- Gastar Sorte -->
           <div style="background:var(--bg-elevated); padding:0.55rem; border-radius:4px; font-size:0.8rem;"
             ng-if="$ctrl.state.ultimaRolagem.podeGastarSorte && $ctrl.state.ultimaRolagem.sorteGasta === 0">
-            <strong>🍀 Gastar Sorte (Disponível: {{$ctrl.inv().derivados.sorteAtual}}%):</strong>
+            <strong>Gastar Sorte (Disponível: {{$ctrl.inv().derivados.sorteAtual}}%):</strong>
             <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.35rem;">
               <button type="button" class="btn btn-sm btn-gold"
                 ng-if="$ctrl.state.ultimaRolagem.sorteParaRegular > 0"
@@ -2998,14 +3012,14 @@
 
         <!-- Histórico da Sessão -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-          <strong style="font-size:0.86rem;">📜 Histórico ({{$ctrl.state.historicoRolagens.length}})</strong>
+          <strong style="font-size:0.86rem;">Histórico ({{$ctrl.state.historicoRolagens.length}})</strong>
           <button type="button" class="btn btn-sm" ng-if="$ctrl.state.historicoRolagens.length > 0"
             ng-click="$ctrl.state.historicoRolagens = []; $ctrl.state.ultimaRolagem = null">Limpar</button>
         </div>
 
         <div class="roll-log-list" style="flex:1; max-height:none;">
           <div class="roll-log-item" ng-repeat="item in $ctrl.state.historicoRolagens track by item.id">
-            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted);">
+            <div style="display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; font-size:0.72rem; color:var(--text-muted);">
               <span>{{item.horario}} • {{item.investigador}}</span>
               <strong>1D100 = {{item.d100.resultadoFinal}}</strong>
             </div>
@@ -3064,7 +3078,7 @@
               <div class="live-attr-box" ng-repeat="atr in $ctrl.T.ATRIBUTOS track by atr.sigla">
                 <div>
                   <strong>{{atr.sigla}}</strong>
-                  <div style="font-family:var(--font-mono); font-size:1.15rem; font-weight:bold;">
+                  <div style="font-variant-numeric:tabular-nums; font-size:1.15rem; font-weight:bold;">
                     {{$ctrl.inv().atributosFinais[atr.sigla]}}%
                   </div>
                 </div>
@@ -3090,8 +3104,8 @@
           <h3 class="sheet-section-title"><span>Perícias do Investigador</span><span>Regular (½ / ⅕)</span></h3>
           <div class="live-skills-columns">
             <div class="live-skill-row" ng-repeat="p in $ctrl.inv().pericias track by p.id">
-              <span>{{p.marcada ? '☑' : '☐'}} {{p.nome}}</span>
-              <span style="font-family:var(--font-mono);">
+              <span>{{p.marcada ? '[X]' : '[ ]'}} {{p.nome}}</span>
+              <span style="font-variant-numeric:tabular-nums;">
                 <strong>{{$ctrl.svc.obterTotalPericiaObj(p)}}%</strong>
                 ({{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).metade}}/{{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).quinto}})
               </span>
@@ -3113,8 +3127,8 @@
               <tr ng-repeat="arma in $ctrl.inv().armas track by $index">
                 <td><strong>{{arma.nome}}</strong></td>
                 <td>{{arma.periciaNome}}</td>
-                <td style="font-family:var(--font-mono);">{{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}%</td>
-                <td style="font-family:var(--font-mono);">{{$ctrl.R.formatarDanoArma(arma.danoBase, arma.somaDX, $ctrl.inv().derivados.danoExtra)}}</td>
+                <td style="font-variant-numeric:tabular-nums;">{{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}%</td>
+                <td style="font-variant-numeric:tabular-nums;">{{$ctrl.R.formatarDanoArma(arma.danoBase, arma.somaDX, $ctrl.inv().derivados.danoExtra)}}</td>
                 <td>{{arma.alcance}}</td><td>{{arma.ataques}}</td><td>{{arma.municao}}</td><td>{{arma.defeito}}</td>
               </tr>
             </tbody>
@@ -3127,11 +3141,11 @@
         <div class="sheet-section-box" style="margin-bottom:0.85rem;">
           <h3 class="sheet-section-title">
             <span>Antecedentes do Investigador (Página 2)</span>
-            <span>★ Conexão-Chave: {{$ctrl.inv().antecedentes.conexaoChave}}</span>
+            <span>Conexão-Chave: {{$ctrl.inv().antecedentes.conexaoChave}}</span>
           </h3>
           <div class="grid-2">
             <div ng-repeat="c in $ctrl.svc.CAMPOS_ANTECEDENTES track by c.chave" style="border-bottom:1px solid var(--border-color); padding-bottom:0.35rem;">
-              <strong>{{c.titulo}} {{$ctrl.inv().antecedentes.conexaoChave === c.titulo ? '★' : ''}}:</strong>
+              <strong>{{c.titulo}} {{$ctrl.inv().antecedentes.conexaoChave === c.titulo ? '' : ''}}:</strong>
               <div style="font-size:0.86rem; white-space:pre-line;">{{$ctrl.inv().antecedentes[c.chave] || '—'}}</div>
             </div>
           </div>
@@ -3244,6 +3258,28 @@
         setTimeout(function () { $window.print(); }, 120);
       };
 
+      $ctrl.baixarPDFOficial = function (achatar = false) {
+        const inv = $ctrl.inv();
+        $ctrl.state.statusAcroForm = 'Preenchendo campos AcroForm da Ficha Oficial...';
+        $window.CoC7e.PDFExport.exportarNaFichaOficialAnexada(inv, { achatarCampos: achatar }).then(function (res) {
+          $scope.$apply(function () {
+            const nome = (((inv.identidade && inv.identidade.nome) || 'investigador'))
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-|-$/g, '') || 'investigador';
+            const sufixo = achatar ? '-impressao' : '-editavel';
+            CocStateService.baixarBytes(res.bytes, 'ficha-oficial-coc7e-' + nome + sufixo + '.pdf', 'application/pdf');
+            $ctrl.state.statusAcroForm = 'Ficha Oficial gerada com sucesso! (' + res.preenchidos + ' de ' + res.totalCampos + ' campos preenchidos).';
+          });
+        }).catch(function (err) {
+          $scope.$apply(function () {
+            $ctrl.state.statusAcroForm = 'Erro ao exportar Ficha Oficial: ' + err.message;
+          });
+        });
+      };
+
       $ctrl.baixarPDFNativo = function () {
         const inv = $ctrl.inv();
         $window.CoC7e.PDFExport.gerarPDFNativoDuasPaginas(inv).then(function (bytes) {
@@ -3265,7 +3301,7 @@
           $scope.$apply(function () {
             const nome = ((inv.identidade && inv.identidade.nome) || 'investigador').toLowerCase().replace(/[^a-z0-9]+/g, '-');
             CocStateService.baixarBytes(res.bytes, 'ficha-coc7e-' + nome + '.pdf', 'application/pdf');
-            $ctrl.state.statusAcroForm = '✓ PDF preenchido! ' + res.preenchidos + ' de ' + res.totalCampos + ' campos AcroForm mapeados.';
+            $ctrl.state.statusAcroForm = ' PDF preenchido! ' + res.preenchidos + ' de ' + res.totalCampos + ' campos AcroForm mapeados.';
           });
         }).catch(function (err) {
           $scope.$apply(function () {
@@ -3290,10 +3326,10 @@
           p.marcada = false;
           if (res.evoluiu) {
             p.outros = (Number(p.outros) || 0) + res.ganho1d10;
-            let msg = '✓ ' + p.nome + ': rolou ' + res.rolagem1d100 + ' (vs ' + totalAtual + '%) → SUBIU +' + res.ganho1d10 + '% (Novo: ' + res.valorNovo + '%)';
+            let msg = ' ' + p.nome + ': rolou ' + res.rolagem1d100 + ' (vs ' + totalAtual + '%) → SUBIU +' + res.ganho1d10 + '% (Novo: ' + res.valorNovo + '%)';
             if (res.recuperouSanidade2d6 > 0) {
               inv.derivados.sanAtual = Math.min(inv.derivados.sanMax, inv.derivados.sanAtual + res.recuperouSanidade2d6);
-              msg += ' 🌟 [Alcançou 90%+! Recuperou +' + res.recuperouSanidade2d6 + ' SAN!]';
+              msg += ' [Alcançou 90%+! Recuperou +' + res.recuperouSanidade2d6 + ' SAN!]';
             }
             logs.push(msg);
           } else {
@@ -3365,14 +3401,14 @@
       <div class="modal-backdrop no-print" ng-if="$ctrl.state.modalAberto === 'investigadores'" role="dialog" aria-modal="true">
         <div class="modal-box">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:2px solid var(--border-color); padding-bottom:0.5rem;">
-            <h2 style="margin:0; font-size:1.2rem;">🗂️ Investigadores Salvos ({{$ctrl.state.investigadores.length}})</h2>
-            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()">✕ Fechar</button>
+            <h2 style="margin:0; font-size:1.2rem;">Investigadores Salvos ({{$ctrl.state.investigadores.length}})</h2>
+            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()"> Fechar</button>
           </div>
 
           <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
             <button type="button" class="btn btn-primary" ng-click="$ctrl.criarNovoInvestigador()">+ Novo Investigador</button>
             <label class="btn" style="cursor:pointer;">
-              📂 Importar JSON
+              Importar JSON
               <input type="file" accept=".json,application/json" style="display:none;"
                 onchange="angular.element(this).scope().$ctrl.importarArquivoJSON(this)" />
             </label>
@@ -3392,7 +3428,7 @@
                 <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.selecionarInvestigador(item.id)">Abrir</button>
                 <button type="button" class="btn btn-sm" ng-click="$ctrl.duplicarInvestigador(item)">Duplicar</button>
                 <button type="button" class="btn btn-sm" ng-click="$ctrl.svc.exportarJSON(item)">JSON</button>
-                <button type="button" class="btn btn-sm btn-danger" ng-if="$ctrl.state.investigadores.length > 1" ng-click="$ctrl.excluirInvestigador(item.id)">✕</button>
+                <button type="button" class="btn btn-sm btn-danger" ng-if="$ctrl.state.investigadores.length > 1" ng-click="$ctrl.excluirInvestigador(item.id)"></button>
               </div>
             </div>
           </div>
@@ -3403,36 +3439,36 @@
       <div class="modal-backdrop no-print" ng-if="$ctrl.state.modalAberto === 'pdf'" role="dialog" aria-modal="true">
         <div class="modal-box">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:2px solid var(--border-color); padding-bottom:0.5rem;">
-            <h2 style="margin:0; font-size:1.2rem;">🖨️ Exportar Ficha PDF &amp; JSON</h2>
-            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()">✕ Fechar</button>
+            <h2 style="margin:0; font-size:1.2rem;">Exportar Ficha Oficial (PDF) &amp; JSON</h2>
+            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()"> Fechar</button>
           </div>
 
           <div class="sheet-section-box" style="margin-bottom:0.85rem;">
             <h3 class="sheet-section-title">Opção 1: Imprimir / Salvar PDF A4 de 2 Páginas (@media print)</h3>
             <p style="font-size:0.86rem; margin-top:0;">Imprime a Ficha Oficial completa de 2 páginas (mesmo estando em uma aba resumida).</p>
-            <button type="button" class="btn btn-primary" ng-click="$ctrl.imprimirDireto()">🖨️ Imprimir / Salvar como PDF Agora</button>
+            <button type="button" class="btn btn-primary" ng-click="$ctrl.imprimirDireto()">️ Imprimir / Salvar como PDF Agora</button>
           </div>
 
           <div class="sheet-section-box" style="margin-bottom:0.85rem;">
             <h3 class="sheet-section-title">Opção 2: Gerar Arquivo .PDF Nativo de 2 Páginas (pdf-lib)</h3>
-            <button type="button" class="btn btn-gold" ng-click="$ctrl.baixarPDFNativo()">📄 Baixar PDF Nativo de 2 Páginas (.pdf)</button>
+            <button type="button" class="btn btn-gold" ng-click="$ctrl.baixarPDFOficial()">Baixar na Ficha Oficial Anexada (PDF Editável)</button><button type="button" class="btn" ng-click="$ctrl.baixarPDFNativo()">Baixar PDF Vetorial Compacto (.pdf)</button>
           </div>
 
           <div class="sheet-section-box" style="margin-bottom:0.85rem;">
             <h3 class="sheet-section-title">Opção 3: Preencher Ficha PDF Editável Oficial (AcroForm)</h3>
             <label class="btn" style="cursor:pointer;">
-              📎 Selecionar FICHA-EDITAVEL-CHAMADO-DE-CTHULHU.pdf...
+              Selecionar Arquivo PDF Externo...
               <input type="file" accept=".pdf,application/pdf" style="display:none;"
                 onchange="angular.element(this).scope().$ctrl.preencherPDFEditavel(this)" />
             </label>
-            <div style="margin-top:0.45rem; font-size:0.8rem; font-family:var(--font-mono);" ng-if="$ctrl.state.statusAcroForm">
+            <div style="margin-top:0.45rem; font-size:0.8rem; font-variant-numeric:tabular-nums;" ng-if="$ctrl.state.statusAcroForm">
               {{$ctrl.state.statusAcroForm}}
             </div>
           </div>
 
           <div class="sheet-section-box">
             <h3 class="sheet-section-title">Opção 4: Backup em JSON</h3>
-            <button type="button" class="btn" ng-click="$ctrl.svc.exportarJSON($ctrl.inv())">💾 Exportar Investigador (.json)</button>
+            <button type="button" class="btn" ng-click="$ctrl.svc.exportarJSON($ctrl.inv())"> Exportar Investigador (.json)</button>
           </div>
         </div>
       </div>
@@ -3441,12 +3477,12 @@
       <div class="modal-backdrop no-print" ng-if="$ctrl.state.modalAberto === 'desenvolvimento'" role="dialog" aria-modal="true">
         <div class="modal-box">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:2px solid var(--border-color); padding-bottom:0.5rem;">
-            <h2 style="margin:0; font-size:1.2rem;">🌟 Fase de Desenvolvimento do Investigador (pág. 94)</h2>
-            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()">✕ Fechar</button>
+            <h2 style="margin:0; font-size:1.2rem;">Fase de Desenvolvimento do Investigador (pág. 94)</h2>
+            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()"> Fechar</button>
           </div>
 
           <p style="font-size:0.86rem; margin-top:0;">
-            Role <code>1D100</code> para cada perícia marcada com <code>[✓]</code>. Se o resultado for <strong>maior que o valor atual</strong> (ou 96–100), a perícia sobe <strong>+1D10%</strong>!
+            Role <code>1D100</code> para cada perícia marcada com <code>[]</code>. Se o resultado for <strong>maior que o valor atual</strong> (ou 96–100), a perícia sobe <strong>+1D10%</strong>!
           </p>
 
           <div class="alert" ng-if="$ctrl.periciasMarcadas().length === 0">
@@ -3460,12 +3496,12 @@
               </li>
             </ul>
             <button type="button" class="btn btn-primary" ng-click="$ctrl.executarFaseDesenvolvimento()">
-              🎲 Rolar Evolução para {{$ctrl.periciasMarcadas().length}} Perícia(s)
+              Rolar Evolução para {{$ctrl.periciasMarcadas().length}} Perícia(s)
             </button>
           </div>
 
           <div class="alert alert-success" ng-if="$ctrl.state.resultadoDesenvolvimento">
-            <ul style="margin:0; padding-left:1.2rem; font-family:var(--font-mono); font-size:0.8rem;">
+            <ul style="margin:0; padding-left:1.2rem; font-variant-numeric:tabular-nums; font-size:0.8rem;">
               <li ng-repeat="r in $ctrl.state.resultadoDesenvolvimento track by $index">{{r}}</li>
             </ul>
           </div>
@@ -3477,7 +3513,7 @@
         <div class="modal-box">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:2px solid var(--border-color); padding-bottom:0.5rem;">
             <h2 style="margin:0; font-size:1.2rem;">+ Adicionar Especialização ou Perícia Incomum</h2>
-            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()">✕ Fechar</button>
+            <button type="button" class="btn btn-sm" ng-click="$ctrl.fechar()"> Fechar</button>
           </div>
 
           <div class="sheet-section-box" style="margin-bottom:1rem;">

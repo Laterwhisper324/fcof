@@ -2,10 +2,14 @@
  * Chamado de Cthulhu 7ª Edição (Edição Brasileira - Década de 1920)
  * Arquivo: pdf-export.js
  *
- * Implementa as duas opções de exportação em PDF solicitadas:
- * (A) Preenchimento do PDF Oficial Editável (`FICHA-EDITAVEL-CHAMADO-DE-CTHULHU.pdf`) usando `pdf-lib`,
- *     com inspeção dos campos AcroForm do formulário PDF + geração direta em 2 páginas via `pdf-lib`.
- * (B) Impressão / Salvar como PDF via `@media print` imitando o layout oficial de 2 páginas (págs. 50-51).
+ * Implementa a exportação completa da ficha do investigador no formato exato do
+ * PDF Oficial Editável de 2 páginas (FICHA-EDITAVEL-CHAMADO-DE-CTHULHU.pdf):
+ * - Mapeamento 1:1 de todos os 360 campos AcroForm (Página 1 e Página 2, incluindo
+ *   características, metades/quintos, vitais, checkboxes de lesão/insanidade,
+ *   todas as perícias nas 4 colunas, linhas de especializações extras, armas,
+ *   combate e os campos Texto1..Texto39 de antecedentes, equipamentos, finanças e companheiros).
+ * - Exportação com 1 clique usando o template oficial embutido (`window.CoC7e.FICHA_OFICIAL_PDF_BASE64`),
+ *   funcionando 100% offline mesmo via `file://`, além de aceitar upload de arquivo PDF externo.
  */
 
 window.CoC7e = window.CoC7e || {};
@@ -16,13 +20,46 @@ window.CoC7e.PDFExport = (function () {
   const R = window.CoC7e.Regras;
 
   /**
-   * Inspeciona todos os campos de formulário (AcroForm) de um arquivo PDF ArrayBuffer usando pdf-lib.
-   * @param {ArrayBuffer} pdfBytes
+   * Converte uma string Base64 para Uint8Array.
+   * @param {string} base64
+   * @returns {Uint8Array}
+   */
+  function base64ParaUint8Array(base64) {
+    const binStr = typeof atob === 'function'
+      ? atob(base64)
+      : Buffer.from(base64, 'base64').toString('binary');
+    const len = binStr.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binStr.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  /**
+   * Obtém os bytes do template PDF oficial embutido (ou via fetch se necessário).
+   * @returns {Promise<Uint8Array>}
+   */
+  async function obterBytesTemplateOficial() {
+    if (window.CoC7e.FICHA_OFICIAL_PDF_BASE64) {
+      return base64ParaUint8Array(window.CoC7e.FICHA_OFICIAL_PDF_BASE64);
+    }
+    const resp = await fetch('data/ficha-oficial-1920.pdf');
+    if (!resp.ok) {
+      throw new Error('Não foi possível carregar o template da ficha oficial.');
+    }
+    const buf = await resp.arrayBuffer();
+    return new Uint8Array(buf);
+  }
+
+  /**
+   * Inspeciona todos os campos de formulário (AcroForm) de um arquivo PDF usando pdf-lib.
+   * @param {ArrayBuffer|Uint8Array} pdfBytes
    * @returns {Promise<Array<{ name: string, type: string }>>}
    */
   async function inspecionarCamposPDF(pdfBytes) {
     if (!window.PDFLib) {
-      throw new Error('Biblioteca pdf-lib não carregada. Verifique sua conexão ou use a impressão nativa.');
+      throw new Error('Biblioteca pdf-lib não carregada.');
     }
     const pdfDoc = await window.PDFLib.PDFDocument.load(pdfBytes, { ignoreEncryption: true });
     const form = pdfDoc.getForm();
@@ -33,106 +70,21 @@ window.CoC7e.PDFExport = (function () {
     }));
   }
 
-  /**
-   * Constrói um dicionário normalizado de valores do investigador para casar com nomes de campos
-   * em português ou inglês da ficha editável oficial (New Order / Chaosium).
-   */
-  function criarMapaValoresFormulario(inv) {
-    const atr = inv.atributosFinais || inv.atributos || {};
-    const deriv = inv.derivados || {};
-    const financas = R.calcularFinancas1920(obterValorPericia(inv, 'nivel_de_credito'));
+  function calcularTotalPericiaObj(p) {
+    if (!p) return 0;
+    return Number(p.base || 0) + Number(p.ocupacao || 0) + Number(p.interesse || 0) + Number(p.outros || 0);
+  }
 
-    const mapa = {};
-    const registrar = (chaves, valor) => {
-      chaves.forEach((k) => {
-        mapa[normalizarChave(k)] = String(valor ?? '');
-      });
-    };
-
-    // Identidade
-    registrar(['nome', 'name', 'investigator_name', 'investigador', 'nome_do_investigador'], inv.identidade?.nome || '');
-    registrar(['jogador', 'player', 'player_name', 'nome_do_jogador'], inv.identidade?.jogador || '');
-    registrar(['ocupacao', 'occupation', 'profissao'], inv.ocupacaoNome || '');
-    registrar(['idade', 'age'], inv.identidade?.idade || '');
-    registrar(['sexo', 'sex', 'genero', 'gender'], inv.identidade?.sexo || '');
-    registrar(['residencia', 'residence', 'moradia'], inv.identidade?.residencia || '');
-    registrar(['local_nasc', 'local_de_nascimento', 'birthplace', 'nascimento'], inv.identidade?.localNascimento || '');
-
-    // Atributos e suas metades/quintos
-    const paresAtributos = [
-      { pt: 'for', en: 'str', nome: 'forca' },
-      { pt: 'con', en: 'con', nome: 'constituicao' },
-      { pt: 'tam', en: 'siz', nome: 'tamanho' },
-      { pt: 'des', en: 'dex', nome: 'destreza' },
-      { pt: 'apa', en: 'app', nome: 'aparencia' },
-      { pt: 'int', en: 'int', nome: 'inteligencia' },
-      { pt: 'pod', en: 'pow', nome: 'poder' },
-      { pt: 'edu', en: 'edu', nome: 'educacao' }
-    ];
-
-    paresAtributos.forEach(({ pt, en, nome }) => {
-      const val = atr[pt.toUpperCase()] ?? 50;
-      const mq = R.calcularMetadeQuinto(val);
-      registrar([pt, en, nome, `${pt}_reg`, `${en}_reg`, `atr_${pt}`], mq.regular);
-      registrar([`${pt}_half`, `${pt}_metade`, `${pt}_2`, `${en}_half`, `${en}_2`, `${nome}_metade`], mq.metade);
-      registrar([`${pt}_fifth`, `${pt}_quinto`, `${pt}_5`, `${en}_fifth`, `${en}_5`, `${nome}_quinto`], mq.quinto);
-    });
-
-    // Derivados
-    registrar(['pv', 'hp', 'pv_atual', 'current_hp', 'pontos_de_vida'], deriv.pvAtual ?? deriv.pvMax ?? '');
-    registrar(['pv_max', 'max_hp', 'pv_maximo'], deriv.pvMax ?? '');
-    registrar(['san', 'sanity', 'san_atual', 'current_san', 'sanidade'], deriv.sanAtual ?? deriv.sanInicial ?? '');
-    registrar(['san_inicial', 'starting_san', 'start_san'], deriv.sanInicial ?? '');
-    registrar(['san_max', 'max_san', 'san_maxima'], deriv.sanMax ?? '');
-    registrar(['pm', 'mp', 'pm_atual', 'current_mp', 'pontos_de_magia'], deriv.pmAtual ?? deriv.pmMax ?? '');
-    registrar(['pm_max', 'max_mp', 'pm_maximo'], deriv.pmMax ?? '');
-    registrar(['sorte', 'luck', 'sorte_atual', 'starting_luck'], deriv.sorteAtual ?? deriv.sorteInicial ?? '');
-    registrar(['mov', 'move', 'movement', 'taxa_de_movimento'], deriv.mov ?? '');
-    registrar(['dano_extra', 'damage_bonus', 'db', 'dx', 'bonus_de_dano'], deriv.danoExtra ?? '');
-    registrar(['corpo', 'build'], deriv.corpo ?? '');
-
-    // Esquiva em combate
-    const esqTotal = obterValorPericia(inv, 'esquivar');
-    const esqMQ = R.calcularMetadeQuinto(esqTotal);
-    registrar(['esquivar', 'esquiva', 'dodge', 'combat_dodge'], esqMQ.regular);
-    registrar(['esquivar_half', 'esquiva_metade', 'dodge_half', 'esquivar_2'], esqMQ.metade);
-    registrar(['esquivar_fifth', 'esquiva_quinto', 'dodge_fifth', 'esquivar_5'], esqMQ.quinto);
-
-    // Todas as perícias
-    (inv.pericias || []).forEach((p) => {
-      const total = Number(p.base || 0) + Number(p.ocupacao || 0) + Number(p.interesse || 0) + Number(p.outros || 0);
-      const mq = R.calcularMetadeQuinto(total);
-      const chaveId = normalizarChave(p.id);
-      const chaveNome = normalizarChave(p.nome);
-      registrar([chaveId, chaveNome, `skill_${chaveId}`, `pericia_${chaveId}`], mq.regular);
-      registrar([`${chaveId}_half`, `${chaveNome}_half`, `${chaveId}_metade`, `${chaveId}_2`], mq.metade);
-      registrar([`${chaveId}_fifth`, `${chaveNome}_fifth`, `${chaveId}_quinto`, `${chaveId}_5`], mq.quinto);
-    });
-
-    // Antecedentes e Finanças
-    const ant = inv.antecedentes || {};
-    registrar(['descricao_pessoal', 'personal_description'], ant.descricaoPessoal || '');
-    registrar(['ideologia', 'ideologia_crencas', 'ideology_beliefs'], ant.ideologiaCrencas || '');
-    registrar(['pessoas_significativas', 'significant_people'], ant.pessoasSignificativas || '');
-    registrar(['locais_importantes', 'meaningful_locations'], ant.locaisImportantes || '');
-    registrar(['pertences_queridos', 'treasured_possessions'], ant.pertencesQueridos || '');
-    registrar(['caracteristicas', 'traits'], ant.caracteristicas || '');
-    registrar(['ferimentos_cicatrizes', 'injuries_scars'], ant.ferimentosCicatrizes || '');
-    registrar(['fobias_manias', 'phobias_manias'], ant.fobiasManias || '');
-    registrar(['tomos_arcanos', 'arcane_tomes_spells'], ant.tomosFeiticos || '');
-    registrar(['encontros_entidades', 'encounters_with_strange_entities'], ant.encontrosEntidades || '');
-    registrar(['equipamento', 'gear_possessions', 'equipamentos'], (inv.equipamentos || []).join('\n'));
-    registrar(['nivel_de_gastos', 'spending_level'], inv.financasCustom?.nivelGastos || financas.nivelGastosTexto);
-    registrar(['dinheiro', 'cash'], inv.financasCustom?.dinheiro || financas.dinheiroTexto);
-    registrar(['patrimonio', 'assets'], inv.financasCustom?.patrimonio || financas.patrimonioTexto);
-
-    return mapa;
+  function obterPericiaPorId(inv, id) {
+    return (inv.pericias || []).find((x) => x.id === id) || null;
   }
 
   function obterValorPericia(inv, id) {
-    const p = (inv.pericias || []).find((x) => x.id === id);
-    if (!p) return 0;
-    return Number(p.base || 0) + Number(p.ocupacao || 0) + Number(p.interesse || 0) + Number(p.outros || 0);
+    return calcularTotalPericiaObj(obterPericiaPorId(inv, id));
+  }
+
+  function obterPericiasDaFamilia(inv, idBase) {
+    return (inv.pericias || []).filter((p) => p.id === idBase || p.idBase === idBase);
   }
 
   function normalizarChave(str) {
@@ -145,19 +97,392 @@ window.CoC7e.PDFExport = (function () {
   }
 
   /**
-   * Preenche um PDF editável (AcroForm) fornecido pelo usuário com os dados do investigador.
-   * @param {ArrayBuffer} pdfBytes - Bytes do arquivo PDF original
+   * Sanitiza caracteres Unicode fora da tabela WinAnsi (CP1252) para evitar erros
+   * ao gerar aparências de texto com StandardFonts.Helvetica no pdf-lib.
+   * @param {string} str
+   * @returns {string}
+   */
+  function sanitizarTextoWinAnsi(str) {
+    return String(str ?? '')
+      .replace(/★|☆|⚝/g, '*')
+      .replace(/⅕/g, '1/5')
+      .replace(/½/g, '1/2')
+      .replace(/✓|✔|✅/g, '[X]')
+      .replace(/✗|✘|❌/g, '[ ]')
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'")
+      .replace(/[—–]/g, '-')
+      .replace(/•/g, '-')
+      .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, '');
+  }
+
+  /**
+   * Constrói o mapeamento exato de textos e caixas de seleção (checkboxes)
+   * para os 360 campos AcroForm de `FICHA-EDITAVEL-CHAMADO-DE-CTHULHU.pdf`.
+   * @param {object} inv - Objeto completo do investigador
+   * @returns {{ textosExatos: Record<string, string>, textosNormalizados: Record<string, string>, checksExatos: Record<string, boolean> }}
+   */
+  function criarMapaAcroFormOficial(inv) {
+    const id = inv.identidade || {};
+    const atr = inv.atributosFinais || inv.atributosBase || {};
+    const deriv = inv.derivados || {};
+    const ant = inv.antecedentes || {};
+    const ncTotal = obterValorPericia(inv, 'nivel_de_credito');
+    const financas = R.calcularFinancas1920(ncTotal);
+
+    const textosExatos = {};
+    const textosNormalizados = {};
+    const checksExatos = {};
+
+    const definirTexto = (nomesCampos, valor) => {
+      const lista = Array.isArray(nomesCampos) ? nomesCampos : [nomesCampos];
+      const strVal = String(valor ?? '');
+      lista.forEach((nome) => {
+        textosExatos[nome] = strVal;
+        textosNormalizados[normalizarChave(nome)] = strVal;
+      });
+    };
+
+    const definirCheck = (nomesCampos, marcado) => {
+      const lista = Array.isArray(nomesCampos) ? nomesCampos : [nomesCampos];
+      lista.forEach((nome) => {
+        checksExatos[nome] = Boolean(marcado);
+      });
+    };
+
+    // =========================================================================
+    // PÁGINA 1 — IDENTIDADE (BLOCO "DÉCADA DE 1920")
+    // =========================================================================
+    definirTexto(['Nome', 'nome', 'investigator_name'], id.nome || '');
+    definirTexto(['Jogador (a)', 'Jogador(a)', 'jogador', 'player_name'], id.jogador || '');
+    definirTexto(['Ocupação', 'ocupacao', 'occupation'], inv.ocupacaoNome || '');
+    definirTexto(['age', 'Idade', 'idade'], id.idade ?? '');
+    definirTexto(['Sexo', 'sexo', 'sex'], id.sexo || '');
+    definirTexto(['Residência', 'residencia', 'residence'], id.residencia || '');
+    definirTexto(['Nascimento', 'nascimento', 'birthplace'], id.localNascimento || '');
+
+    // =========================================================================
+    // PÁGINA 1 — CARACTERÍSTICAS (8 ATRIBUTOS + METADE + QUINTO + MOV)
+    // =========================================================================
+    const mapaAtributos = [
+      { sigla: 'FOR', reg: 'str', met: 'str 1/2', qui: 'str 1/5' },
+      { sigla: 'CON', reg: 'con', met: 'con Metade', qui: 'con 1/5' },
+      { sigla: 'TAM', reg: 'siz', met: 'siz Metade', qui: 'siz 1/5' },
+      { sigla: 'DES', reg: 'dex', met: 'dex Metade', qui: 'dex 1/5' },
+      { sigla: 'APA', reg: 'app', met: 'app Metade', qui: 'app 1/5' },
+      { sigla: 'INT', reg: 'int', met: 'int Metade', qui: 'int 1/5' },
+      { sigla: 'POD', reg: 'pow', met: 'pow Metade', qui: 'pow 1/5' },
+      { sigla: 'EDU', reg: 'edu', met: 'edu Metade', qui: 'edu 1/5' }
+    ];
+
+    mapaAtributos.forEach(({ sigla, reg, met, qui }) => {
+      const val = atr[sigla] ?? 50;
+      const mq = R.calcularMetadeQuinto(val);
+      definirTexto([reg, sigla.toLowerCase()], mq.regular);
+      definirTexto([met, `${reg} Metade`, `${reg} 1/2`, `${sigla.toLowerCase()}_half`], mq.metade);
+      definirTexto([qui, `${reg} 1/5`, `${sigla.toLowerCase()}_fifth`], mq.quinto);
+    });
+
+    const movInfo = R.calcularMOV(atr.FOR, atr.DES, atr.TAM, id.idade || 28);
+    definirTexto(['MOV', 'mov', 'movement'], deriv.mov ?? movInfo.movFinal);
+    definirCheck('movplus1', movInfo.movBase > 8);
+    definirCheck('movminus1', movInfo.movBase < 8 || movInfo.penalidadeIdade > 0);
+
+    // =========================================================================
+    // PÁGINA 1 — RECURSOS VITAIS (PV, SANIDADE, MAGIA, SORTE E CHECKBOXES)
+    // =========================================================================
+    definirTexto(['MaxHP', 'pv_max'], deriv.pvMax ?? '');
+    definirTexto(['Sanity_Start', 'san_inicial'], deriv.sanInicial ?? '');
+    definirTexto(['Sanity_Max', 'san_max'], deriv.sanMax ?? '');
+    definirTexto(['LuckTotal', 'sorte_atual'], deriv.sorteAtual ?? deriv.sorteInicial ?? '');
+
+    // Checkboxes de estado vital na Página 1:
+    // Caixa de seleção1 = Lesão Grave | Caixa de seleção2 = Insanidade Temporária | Caixa de seleção3 = Insanidade Indefinida
+    definirCheck('Caixa de seleção1', Boolean(deriv.lesaoGrave));
+    definirCheck('Caixa de seleção2', Boolean(deriv.insanidadeTemporaria));
+    definirCheck('Caixa de seleção3', Boolean(deriv.insanidadeIndefinida));
+
+    // =========================================================================
+    // PÁGINA 1 — PERÍCIAS DO INVESTIGADOR (4 COLUNAS)
+    // =========================================================================
+    const preencherPericiaPDF = (periciaObj, campoReg, campoMet, campoQui, campoChk, campoRotulo, textoRotulo) => {
+      if (!periciaObj) return;
+      const total = calcularTotalPericiaObj(periciaObj);
+      const mq = R.calcularMetadeQuinto(total);
+      if (campoReg) definirTexto(campoReg, mq.regular);
+      if (campoMet) definirTexto(campoMet, mq.metade);
+      if (campoQui) definirTexto(campoQui, mq.quinto);
+      if (campoChk) definirCheck(campoChk, Boolean(periciaObj.marcada));
+      if (campoRotulo && textoRotulo !== undefined) {
+        definirTexto(campoRotulo, textoRotulo);
+      }
+    };
+
+    // Perícias fixas de linha única
+    const periciasDiretas = [
+      // Coluna 1
+      { id: 'antropologia', reg: 'antropologia', met: 'antropologia1 Metade', qui: 'antropologia1 1/5', chk: 'antropologiachk' },
+      { id: 'armas_de_fogo_pistolas', reg: 'pistolas', met: 'pistolasMetade', qui: 'pistolas1/5', chk: 'check armas de fogo pistolas' },
+      { id: 'armas_de_fogo_rifles_espingardas', reg: 'rifles', met: 'a1 Metaderifles', qui: 'rifles 1/5', chk: 'check armas de fogo rifles' },
+      { id: 'arqueologia', reg: 'arqueologia', met: 'arqueologiaMetade', qui: 'arqueologia1/5', chk: 'check arqueologia' },
+      { id: 'arremessar', reg: 'arremessar', met: 'a1 Metadearremessar', qui: 'a1 1/5arremessar', chk: 'check arremessar' },
+      { id: 'avaliacao', reg: 'avaliaçãoo', met: 'a1 Metadeavaliação', qui: 'a1 1/5avaliação', chk: 'check avaliação' },
+      { id: 'cavalgar', reg: 'cavalgar', met: 'a1 Metadecavalgar', qui: 'a1 1/5cavalgar', chk: 'check cavalgar' },
+      { id: 'charme', reg: 'charme', met: 'a1 Metadecharme', qui: 'a1 1/5charme', chk: 'check charme' },
+      { id: 'chaveiro', reg: 'chaveiro', met: 'a1 Metadechaveiro', qui: 'a1 1/5chaveiro', chk: 'check chaveiro' },
+
+      // Coluna 2
+      { id: 'consertos_eletricos', reg: 'eletricos', met: 'eletricos Metade', qui: 'eletricos 1/5', chk: 'check eletricos' },
+      { id: 'consertos_mecanicos', reg: 'mecanicos', met: 'mecanicos Metade', qui: 'mecanicos 1/5', chk: 'check mecanicos' },
+      { id: 'contabilidade', reg: 'contabilidade', met: 'contabilidadeMetade', qui: 'contabilidade1/5', chk: 'check contabilidade' },
+      { id: 'direito', reg: 'direito', met: 'a1 Metadedireito', qui: 'a1 1/5direito', chk: 'check direito' },
+      { id: 'dirigir_automoveis', reg: 'dirigir', met: 'a1 Metadedirigir', qui: 'a1 1/5dirigir', chk: 'check dirigir' },
+      { id: 'disfarce', reg: 'disfarce', met: 'a1 Metadedisfarce', qui: 'a1 1/5disfarce', chk: 'check disfarce' },
+      { id: 'encontrar', reg: 'encontrar', met: 'a1 Metadeencontrar', qui: 'a1 1/5encontrar', chk: 'check encontrar' },
+      { id: 'escutar', reg: 'escutar', met: 'a1 Metadeescutar', qui: 'a1 1/5escutar', chk: 'check escutar' },
+      { id: 'escalar', reg: 'escalar', met: 'a1 Metadeescalar', qui: 'a1 1/5escalar', chk: 'check escalar' },
+      { id: 'esquivar', reg: 'esquivar', met: 'esquivar metade', qui: 'esquivar quinto', chk: 'check esquivar' },
+      { id: 'labia', reg: 'labia', met: 'a1 Metadelabia', qui: 'a1 1/5labia', chk: 'check labia' },
+      { id: 'intimidacao', reg: 'intimidacao', met: 'a1 Metadeintimidacao', qui: 'a1 1/5intimidacao', chk: 'check intimidacao' },
+      { id: 'historia', reg: 'historia', met: 'a1 Metadehistoria', qui: 'a1 1/5historia', chk: 'check historia' },
+
+      // Coluna 3
+      { id: 'furtividade', reg: 'furtividade', met: 'a1 Metadefurtividade', qui: 'a1 1/5furtividade', chk: 'check furtividade' },
+      { id: 'lutar_briga', reg: 'lutara', met: 'a1 Metadelutar', qui: 'a1 1/5lutar', chk: 'check lutar' },
+      { id: 'medicina', reg: 'medicinaa', met: 'medicinaaa', qui: 'medicinasd', chk: 'check medicina' },
+      { id: 'mythos_de_cthulhu', reg: 'mythos', met: 'mythosaa', qui: 'mythosaaa', chk: null },
+      { id: 'mundo_natural', reg: 'natural', met: 'naturalqq', qui: 'a1 1/5natural', chk: 'check natural' },
+      { id: 'natacao', reg: 'natacaoa', met: 'a1 Metadenatacao', qui: 'a1 1/5natacao', chk: 'check natacao' },
+      { id: 'navegacao', reg: 'navegacaoa', met: 'a1 Metadenavegacao', qui: 'a1 1/5navegacao', chk: 'check navegacao' },
+      { id: 'nivel_de_credito', reg: 'crédito', met: 'a1 Metadecrédito', qui: 'a1 1/5crédito', chk: null },
+
+      // Coluna 4
+      { id: 'ocultismo', reg: 'ocultismoa', met: 'a1 Metadeocultismo', qui: 'a1 1/5ocultismo', chk: 'check ocultismo' },
+      { id: 'operar_maquinario', reg: 'maquinario', met: 'a1 Metademaquinario', qui: 'a1 1/5maquinario', chk: 'check maquinario' },
+      { id: 'persuasao', reg: 'persuasao', met: 'a1 Metadepersuasao', qui: 'a1 1/5persuasao', chk: 'check persuasao' },
+      { id: 'prestidigitacao', reg: 'prestidigitacaoa', met: 'a1 Metadeprestidigitacao', qui: 'a1 1/5prestidigitacao', chk: 'check prestidigitacao' },
+      { id: 'primeiros_socorros', reg: 'primeiros socorros', met: 'a1 Metadeprimeiros socorros', qui: 'a1 1/5primeiros socorros', chk: 'check primeiros socorros' },
+      { id: 'psicanalise', reg: 'psicanalise', met: 'a1 Metadepsicanalise', qui: 'a1 1/5psicanalise', chk: 'check psicanalise' },
+      { id: 'psicologia', reg: 'psicologia', met: 'a1 Metadepsicologia', qui: 'a1 1/5psicologia', chk: 'check psicologia' },
+      { id: 'saltar', reg: 'saltar', met: 'a1 Metadesaltar', qui: 'a1 1/5saltar', chk: 'check saltar' },
+      { id: 'rastrear', reg: 'rastrear', met: 'a1 Metaderastrear', qui: 'a1 1/5rastrear', chk: 'check rastrear' },
+      // Na Coluna 4 (y=262.6), a linha impressa de "Usar Biblioteca (20%)" usa os campos 'abranco14a', 'a1 Metadedbranco2', 'a1 1/5dbranco2', 'check dbranco2'
+      { id: 'usar_bibliotecas', reg: 'abranco14a', met: 'a1 Metadedbranco2', qui: 'a1 1/5dbranco2', chk: 'check dbranco2' }
+    ];
+
+    periciasDiretas.forEach((m) => {
+      const pObj = obterPericiaPorId(inv, m.id);
+      preencherPericiaPDF(pObj, m.reg, m.met, m.qui, m.chk);
+    });
+
+    // Língua Nativa (com rótulo do idioma em 'LINGUA NATURALL')
+    const pLinguaNat = obterPericiaPorId(inv, 'lingua_nativa');
+    if (pLinguaNat) {
+      preencherPericiaPDF(
+        pLinguaNat,
+        'lingua natural',
+        'a1 Metadelingua natural',
+        'a1 1/5lingua natural',
+        'check lingua natural',
+        'LINGUA NATURALL',
+        pLinguaNat.especializacao || 'Inglês / Português'
+      );
+    }
+
+    // Arte e Ofício (até 4 slots na Coluna 1)
+    const slotsArte = [
+      { rotulo: 'ARTES OU OFICIOS', reg: 'arte', met: 'a1 Metadearte', qui: 'a1 1/5arte', chk: 'check arte' },
+      { rotulo: 'abranco1a', reg: 'abranco', met: 'a1 Metadeabranco', qui: 'a1 1/5abranco', chk: 'check abranco' },
+      { rotulo: 'abranco2a', reg: 'a1a1branco', met: 'a1 Metadea1a1branco', qui: 'a1 1/5a1a1branco', chk: 'check a1branco' },
+      { rotulo: 'abranco3a', reg: 'abranco3', met: 'a1 Metadeaabranco3', qui: 'a1 1/5aabranco3', chk: 'check a2branco' }
+    ];
+    const periciasArte = obterPericiasDaFamilia(inv, 'arte_e_oficio');
+    periciasArte.slice(0, 4).forEach((p, idx) => {
+      const s = slotsArte[idx];
+      preencherPericiaPDF(p, s.reg, s.met, s.qui, s.chk, s.rotulo, p.especializacao || '');
+    });
+
+    // Ciência (linha principal + 3 slots de especialização no fim da Coluna 1 e topo da Coluna 2)
+    const periciasCiencia = obterPericiasDaFamilia(inv, 'ciencia');
+    if (periciasCiencia.length > 0) {
+      // Preenche a linha principal de Ciência com a primeira ciência
+      preencherPericiaPDF(periciasCiencia[0], 'ciencia', 'a1 Metadeciencia', 'a1 1/5ciencia', 'check ciencia');
+      const slotsCiencia = [
+        { rotulo: 'abranco4', reg: '4branco', met: 'a1 Metade4branco', qui: 'a1 1/54branco', chk: 'check a4branco' },
+        { rotulo: 'abranco6', reg: 'abranco6a', met: 'branco1 Metadeabranco6', qui: 'branco1 1/5abranco6', chk: 'check branco1' },
+        { rotulo: 'abranco7', reg: 'abranco7a', met: 'branco2 Metadeabranco7a', qui: 'branco2 1/5abranco7a', chk: 'check branco2' }
+      ];
+      periciasCiencia.slice(0, 3).forEach((p, idx) => {
+        const s = slotsCiencia[idx];
+        preencherPericiaPDF(p, s.reg, s.met, s.qui, s.chk, s.rotulo, p.especializacao || '');
+      });
+    }
+
+    // Língua (Outra) (até 4 slots na Coluna 3)
+    const slotsLinguaOutra = [
+      { rotulo: 'LINGUA OUTRASS', reg: 'lingua outra', met: 'a1 Metadelingua outra', qui: 'a1 1/5lingua outra', chk: 'check lingua outra' },
+      { rotulo: 'abranco9', reg: 'abranco9a', met: 'abranco9aa', qui: 'abranco9aa', chk: 'check cbranco1' },
+      { rotulo: 'abranco10', reg: 'abranco10a', met: 'abranco10aa', qui: 'abranco10aaa', chk: 'check cbranco2' },
+      { rotulo: 'abranco11', reg: 'abranco11a', met: 'abranco11aa', qui: 'abranco11aaa', chk: 'check cbranco3' }
+    ];
+    const periciasLinguaOutra = obterPericiasDaFamilia(inv, 'lingua_outra');
+    periciasLinguaOutra.slice(0, 4).forEach((p, idx) => {
+      const s = slotsLinguaOutra[idx];
+      preencherPericiaPDF(p, s.reg, s.met, s.qui, s.chk, s.rotulo, p.especializacao || '');
+    });
+
+    // Pilotar (linha principal + linha de especialização 'abranco13' na Coluna 4)
+    const periciasPilotar = obterPericiasDaFamilia(inv, 'pilotar');
+    if (periciasPilotar.length > 0) {
+      const p0 = periciasPilotar[0];
+      preencherPericiaPDF(p0, 'pilotar', 'a1 Metadepilotar', 'a1 1/5pilotar', 'check pilotar');
+      preencherPericiaPDF(p0, 'abranco13a', 'a1 Metadedbranco13aa', 'a1 1/5dbranco13', 'check dbranco1', 'abranco13', p0.especializacao || '');
+    }
+
+    // Sobrevivência (com rótulo em 'abranco14' na Coluna 4)
+    const periciasSobrev = obterPericiasDaFamilia(inv, 'sobrevivencia');
+    if (periciasSobrev.length > 0) {
+      const p0 = periciasSobrev[0];
+      preencherPericiaPDF(p0, 'sobrevivencia', 'a1 Metadesobrevivencia', 'a1 1/5sobrevivencia', 'check sobrevivencia', 'abranco14', p0.especializacao || '');
+    }
+
+    // Especializações extras de Lutar, Armas de Fogo ou Perícias Incomuns nos slots livres da ficha
+    const idsPadraoMapeados = new Set([
+      ...periciasDiretas.map((x) => x.id),
+      'lingua_nativa', 'arte_e_oficio', 'ciencia', 'lingua_outra', 'pilotar', 'sobrevivencia'
+    ]);
+    const periciasExtrasCustom = (inv.pericias || []).filter(
+      (p) => !idsPadraoMapeados.has(p.id) && !idsPadraoMapeados.has(p.idBase)
+    );
+    const slotsExtrasLivres = [
+      { rotulo: 'abranco15', reg: 'abranco15a', met: 'a1 Metadedbranco3', qui: 'a1 1/5dbranco3', chk: 'check dbranco3' },
+      { rotulo: 'abranco8', reg: 'abranco8a', met: 'a1 Metadecbranco0a', qui: 'a1 1/5cbranco0a', chk: 'check cbranco0' },
+      { rotulo: 'abranco12', reg: 'abranco12a', met: 'abranco12aa', qui: 'abranco12aaa', chk: 'check cbranco4' }
+    ];
+    periciasExtrasCustom.slice(0, slotsExtrasLivres.length).forEach((p, idx) => {
+      const s = slotsExtrasLivres[idx];
+      preencherPericiaPDF(p, s.reg, s.met, s.qui, s.chk, s.rotulo, p.nome);
+    });
+
+    // =========================================================================
+    // PÁGINA 1 — ARMAS E COMBATE
+    // =========================================================================
+    // Combate: Bônus de Dano, Corpo e Esquiva
+    const esqTotal = obterValorPericia(inv, 'esquivar') || R.calcularEsquivaBase(atr.DES);
+    const esqMQ = R.calcularMetadeQuinto(esqTotal);
+    definirTexto(['DamageBonus', 'dano_extra'], deriv.danoExtra || 'Nenhum');
+    definirTexto(['Build', 'corpo'], deriv.corpo ?? 0);
+    definirTexto(['Dodge', 'esquiva_combate'], esqMQ.regular);
+    definirTexto(['Dodge_Copy_half', 'esquiva_combate_metade'], esqMQ.metade);
+    definirTexto(['Dodge_Copy_fifth', 'esquiva_combate_quinto'], esqMQ.quinto);
+
+    // Linha 1 de Armas: Desarmado (impresso na ficha)
+    const brigaVal = obterValorPericia(inv, 'lutar_briga') || 25;
+    const brigaMQ = R.calcularMetadeQuinto(brigaVal);
+    definirTexto('regular1', brigaMQ.regular);
+    definirTexto('dificil1', brigaMQ.metade);
+    definirTexto('extremo1', brigaMQ.quinto);
+
+    // Armas adicionais (excluindo o Desarmado inicial caso seja o item 0)
+    const armasExtras = (inv.armas || []).filter((a, idx) => !(idx === 0 && a.id === 'desarmado'));
+    const sufixosArmas = ['12', '13'];
+    armasExtras.slice(0, 2).forEach((arma, idx) => {
+      const suf = sufixosArmas[idx];
+      const perVal = obterValorPericia(inv, arma.periciaId) || 25;
+      const mq = R.calcularMetadeQuinto(perVal);
+      const danoFmt = R.formatarDanoArma(arma.danoBase, arma.somaDX, deriv.danoExtra);
+
+      definirTexto(`armas${suf}`, arma.nome || '');
+      definirTexto(`regular${suf}`, mq.regular);
+      definirTexto(`dificil${suf}`, mq.metade);
+      definirTexto(`extremo${suf}`, mq.quinto);
+      definirTexto(`dano${suf}`, danoFmt);
+      definirTexto(`alcance${suf}`, arma.alcance || '-');
+      definirTexto(`ataques${suf}`, arma.ataques || '1');
+      definirTexto(`munição${suf}`, arma.municao || '-');
+      definirTexto(`defeito${suf}`, arma.defeito || '-');
+    });
+
+    // =========================================================================
+    // PÁGINA 2 — ANTECEDENTES, EQUIPAMENTOS, FINANÇAS E COMPANHEIROS (Texto1..Texto39)
+    // =========================================================================
+    const formatarAntecedente = (titulo, texto) => {
+      const t = (texto || '').trim();
+      if (!t) return '';
+      return ant.conexaoChave === titulo ? `* [CONEXÃO-CHAVE] ${t}` : t;
+    };
+
+    // Antecedentes (10 blocos nas coordenadas exatas de Texto2..Texto11)
+    definirTexto(['Texto2', 'descricao_pessoal'], ant.descricaoPessoal || '');
+    definirTexto(['Texto3', 'caracteristicas'], ant.caracteristicas || '');
+    definirTexto(['Texto6', 'ideologia_crencas'], formatarAntecedente('Ideologia / Crenças', ant.ideologiaCrencas));
+    definirTexto(['Texto7', 'ferimentos_cicatrizes'], ant.ferimentosCicatrizes || '');
+    definirTexto(['Texto8', 'pessoas_significativas'], formatarAntecedente('Pessoas Significativas', ant.pessoasSignificativas));
+    definirTexto(['Texto9', 'fobias_manias'], ant.fobiasManias || '');
+    definirTexto(['Texto10', 'locais_importantes'], formatarAntecedente('Locais Importantes', ant.locaisImportantes));
+    definirTexto(['Texto11', 'tomos_arcanos'], ant.tomosFeiticos || '');
+    definirTexto(['Texto5', 'pertences_queridos'], formatarAntecedente('Pertences Queridos', ant.pertencesQueridos));
+    definirTexto(['Texto4', 'encontros_entidades'], ant.encontrosEntidades || '');
+
+    // Equipamento e Pertences (duas colunas na Página 2: Texto1 à esquerda, Texto12 à direita)
+    const listaEquip = inv.equipamentos || [];
+    const meioEquip = Math.ceil(Math.max(1, listaEquip.length) / 2);
+    const col1Equip = listaEquip.slice(0, Math.max(6, meioEquip)).map((item) => `- ${item}`).join('\n');
+    const col2Equip = listaEquip.slice(Math.max(6, meioEquip)).map((item) => `- ${item}`).join('\n');
+    definirTexto(['Texto1', 'equipamento'], col1Equip);
+    definirTexto(['Texto12', 'equipamento_col2'], col2Equip);
+
+    // Dinheiro e Recursos (Texto14 = Nível de Gastos, Texto15 = Dinheiro, Texto13 = Patrimônio)
+    definirTexto(['Texto14', 'nivel_de_gastos'], inv.financasCustom?.nivelGastos || financas.nivelGastosTexto);
+    definirTexto(['Texto15', 'dinheiro'], inv.financasCustom?.dinheiro || financas.dinheiroTexto);
+    const textoPatrimonio = (inv.financasCustom?.patrimonio || financas.patrimonioTexto);
+    definirTexto(['Texto13', 'patrimonio'], textoPatrimonio);
+
+    // Companheiros Investigadores (8 blocos ao redor de "Eu" na Página 2: coordenadas verificadas)
+    const slotsCompanheiros = [
+      { p: 'Texto16', j: 'Texto17', r: 'Texto18' }, // Topo-Esquerda
+      { p: 'Texto19', j: 'Texto20', r: 'Texto21' }, // Topo-Centro
+      { p: 'Texto22', j: 'Texto23', r: 'Texto24' }, // Topo-Direita
+      { p: 'Texto25', j: 'Texto26', r: 'Texto27' }, // Meio-Esquerda
+      { p: 'Texto28', j: 'Texto29', r: 'Texto30' }, // Meio-Direita
+      { p: 'Texto31', j: 'Texto32', r: 'Texto33' }, // Base-Esquerda
+      { p: 'Texto34', j: 'Texto35', r: 'Texto36' }, // Base-Centro
+      { p: 'Texto37', j: 'Texto38', r: 'Texto39' }  // Base-Direita
+    ];
+    (inv.companheiros || []).slice(0, 8).forEach((comp, idx) => {
+      const slot = slotsCompanheiros[idx];
+      definirTexto(slot.p, comp.personagem || comp.nome || '');
+      definirTexto(slot.j, comp.jogador || '');
+      definirTexto(slot.r, comp.relacao || comp.notas || '');
+    });
+
+    return {
+      camposTexto: textosExatos,
+      camposCheck: checksExatos,
+      textosExatos,
+      textosNormalizados,
+      checksExatos
+    };
+  }
+
+  /**
+   * Preenche um PDF editável (AcroForm) com todos os dados do investigador.
+   * @param {ArrayBuffer|Uint8Array} pdfBytes - Bytes do PDF original
    * @param {object} investigador - Objeto completo do investigador
+   * @param {object} [opcoes={}] - `{ achatarCampos: boolean }`
    * @returns {Promise<{ bytes: Uint8Array, preenchidos: number, totalCampos: number, logCampos: string[] }>}
    */
-  async function preencherPDFEditavel(pdfBytes, investigador) {
+  async function preencherPDFEditavel(pdfBytes, investigador, opcoes = {}) {
     if (!window.PDFLib) {
       throw new Error('Biblioteca pdf-lib não está disponível.');
     }
-    const pdfDoc = await window.PDFLib.PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+    const fontHelvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const form = pdfDoc.getForm();
     const fields = form.getFields();
-    const mapa = criarMapaValoresFormulario(investigador);
+    const { textosExatos, textosNormalizados, checksExatos } = criarMapaAcroFormOficial(investigador);
 
     let preenchidos = 0;
     const logCampos = [];
@@ -167,15 +492,78 @@ window.CoC7e.PDFExport = (function () {
       const normName = normalizarChave(rawName);
       logCampos.push(`${rawName} (${field.constructor.name})`);
 
-      if (mapa[normName] !== undefined && typeof field.setText === 'function') {
-        try {
-          field.setText(String(mapa[normName]));
-          preenchidos++;
-        } catch (err) {
-          // Ignora campos com restrição de fonte/tamanho
+      // 1. Campo de Texto (PDFTextField)
+      if (typeof field.setText === 'function') {
+        const valor = textosExatos[rawName] !== undefined
+          ? textosExatos[rawName]
+          : textosNormalizados[normName];
+
+        if (valor !== undefined && valor !== '') {
+          const textoLimpo = sanitizarTextoWinAnsi(valor);
+          try {
+            field.setText(textoLimpo);
+            field.updateAppearances(fontHelvetica);
+            preenchidos++;
+          } catch (err) {
+            try {
+              field.setText(textoLimpo);
+              preenchidos++;
+            } catch (_) {
+              // Ignora caso o widget tenha restrição específica
+            }
+          }
+        }
+      }
+      // 2. Caixa de Seleção (PDFCheckBox)
+      else if (typeof field.check === 'function' && typeof field.uncheck === 'function') {
+        if (checksExatos[rawName] !== undefined) {
+          try {
+            if (checksExatos[rawName]) {
+              field.check();
+              preenchidos++;
+            } else {
+              field.uncheck();
+            }
+          } catch (_) {
+            // Ignora botões que não são checkboxes padrão
+          }
         }
       }
     });
+
+    // 3. Caso o investigador tenha 4 ou 5 armas (além de Desarmado e das 2 linhas com AcroForm),
+    // desenha diretamente nas linhas 4 e 5 da tabela de Armas da Página 1:
+    const armasExtras = (investigador.armas || []).filter((a, idx) => !(idx === 0 && a.id === 'desarmado'));
+    if (armasExtras.length > 2) {
+      const page1 = pdfDoc.getPages()[0];
+      const deriv = investigador.derivados || {};
+      const coordsYLinhasExtras = [134.0, 119.5];
+      armasExtras.slice(2, 4).forEach((arma, idx) => {
+        const y = coordsYLinhasExtras[idx];
+        const perVal = obterValorPericia(investigador, arma.periciaId) || 25;
+        const mq = R.calcularMetadeQuinto(perVal);
+        const danoFmt = R.formatarDanoArma(arma.danoBase, arma.somaDX, deriv.danoExtra);
+        const cor = rgb(0.1, 0.1, 0.1);
+
+        page1.drawText(String(arma.nome || '').slice(0, 18), { x: 46, y, size: 8, font: fontHelvetica, color: cor });
+        page1.drawText(String(mq.regular), { x: 129, y, size: 8.5, font: fontHelvetica, color: cor });
+        page1.drawText(String(mq.metade), { x: 168, y, size: 8.5, font: fontHelvetica, color: cor });
+        page1.drawText(String(mq.quinto), { x: 207, y, size: 8.5, font: fontHelvetica, color: cor });
+        page1.drawText(String(danoFmt).slice(0, 12), { x: 242, y, size: 8, font: fontHelvetica, color: cor });
+        page1.drawText(String(arma.alcance || '-').slice(0, 8), { x: 304, y, size: 8, font: fontHelvetica, color: cor });
+        page1.drawText(String(arma.ataques || '1').slice(0, 6), { x: 348, y, size: 8, font: fontHelvetica, color: cor });
+        page1.drawText(String(arma.municao || '-').slice(0, 6), { x: 388, y, size: 8, font: fontHelvetica, color: cor });
+        page1.drawText(String(arma.defeito || '-').slice(0, 6), { x: 427, y, size: 8, font: fontHelvetica, color: cor });
+      });
+    }
+
+    if (opcoes.achatarCampos) {
+      try {
+        form.flatten();
+      } catch (_) {
+        // Caso algum botão de ação como Resetar impeça flatten total, mantém editável
+      }
+    }
 
     const bytes = await pdfDoc.save();
     return {
@@ -187,206 +575,36 @@ window.CoC7e.PDFExport = (function () {
   }
 
   /**
-   * Gera um arquivo PDF de 2 páginas completo do zero usando `pdf-lib`
-   * (caso o jogador queira baixar um arquivo `.pdf` direto sem precisar do template externo).
+   * Exporta o investigador diretamente no formato do PDF Oficial anexado
+   * usando o template oficial embutido (1 clique, sem precisar enviar arquivo).
+   * @param {object} investigador
+   * @param {object} [opcoes={}] - `{ achatarCampos: boolean }`
+   * @returns {Promise<{ bytes: Uint8Array, preenchidos: number, totalCampos: number }>}
+   */
+  async function exportarNaFichaOficialAnexada(investigador, opcoes = {}) {
+    const templateBytes = await obterBytesTemplateOficial();
+    return await preencherPDFEditavel(templateBytes, investigador, opcoes);
+  }
+
+  /**
+   * Gera um arquivo PDF de 2 páginas resumo leve do zero usando `pdf-lib`.
    * @param {object} inv - Investigador
    * @returns {Promise<Uint8Array>}
    */
   async function gerarPDFNativoDuasPaginas(inv) {
-    if (!window.PDFLib) {
-      throw new Error('Biblioteca pdf-lib não carregada.');
+    // Usa o template oficial embutido por padrão caso disponível
+    if (window.CoC7e.FICHA_OFICIAL_PDF_BASE64) {
+      const res = await exportarNaFichaOficialAnexada(inv);
+      return res.bytes;
     }
-    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
-    const pdfDoc = await PDFDocument.create();
-    const fontSerif = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-    const fontBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-
-    const corFundo = rgb(0.96, 0.94, 0.89);
-    const corTinta = rgb(0.12, 0.11, 0.09);
-    const corDestaque = rgb(0.15, 0.27, 0.21);
-    const corLinha = rgb(0.55, 0.48, 0.38);
-
-    // PÁGINA 1: Características, Derivados, Perícias e Combate
-    const page1 = pdfDoc.addPage([595.28, 841.89]); // A4
-    page1.drawRectangle({ x: 0, y: 0, width: 595.28, height: 841.89, color: corFundo });
-
-    const drawHeader = (page, subtitulo) => {
-      page.drawRectangle({ x: 24, y: 785, width: 547, height: 34, color: corDestaque });
-      page.drawText('CHAMADO DE CTHULHU — FICHA DE INVESTIGADOR (ANOS 1920)', {
-        x: 34,
-        y: 800,
-        size: 12,
-        font: fontBold,
-        color: rgb(0.96, 0.93, 0.85)
-      });
-      page.drawText(subtitulo, {
-        x: 34,
-        y: 789,
-        size: 8.5,
-        font: fontSerif,
-        color: rgb(0.85, 0.82, 0.72)
-      });
-    };
-
-    drawHeader(page1, 'Página 1: Identidade, Características, Atributos Derivados, Perícias e Combate');
-
-    // Bloco Identidade
-    let y = 768;
-    const id = inv.identidade || {};
-    const atr = inv.atributosFinais || inv.atributos || {};
-    const deriv = inv.derivados || {};
-
-    page1.drawText(`Nome: ${id.nome || '—'}`, { x: 28, y, size: 10, font: fontBold, color: corTinta });
-    page1.drawText(`Jogador(a): ${id.jogador || '—'}`, { x: 240, y, size: 10, font: fontSerif, color: corTinta });
-    page1.drawText(`Idade: ${id.idade || '—'}  |  Sexo: ${id.sexo || '—'}`, { x: 420, y, size: 10, font: fontSerif, color: corTinta });
-    y -= 15;
-    page1.drawText(`Ocupação: ${inv.ocupacaoNome || '—'}`, { x: 28, y, size: 10, font: fontBold, color: corTinta });
-    page1.drawText(`Residência: ${id.residencia || '—'}`, { x: 240, y, size: 10, font: fontSerif, color: corTinta });
-    page1.drawText(`Nascimento: ${id.localNascimento || '—'}`, { x: 420, y, size: 10, font: fontSerif, color: corTinta });
-
-    y -= 10;
-    page1.drawLine({ start: { x: 24, y }, end: { x: 571, y }, thickness: 1, color: corLinha });
-
-    // Características (8 atributos com 1/2 e 1/5)
-    y -= 16;
-    page1.drawText('CARACTERÍSTICAS (Regular / Difícil ½ / Extremo ⅕)', { x: 28, y, size: 10, font: fontBold, color: corDestaque });
-    y -= 16;
-    const siglas = ['FOR', 'CON', 'TAM', 'DES', 'APA', 'INT', 'POD', 'EDU'];
-    siglas.forEach((sigla, idx) => {
-      const val = atr[sigla] ?? 50;
-      const mq = R.calcularMetadeQuinto(val);
-      const colX = 28 + idx * 68;
-      page1.drawRectangle({ x: colX, y: y - 22, width: 62, height: 32, borderColor: corLinha, borderWidth: 0.8 });
-      page1.drawText(`${sigla}: ${mq.regular}%`, { x: colX + 5, y: y - 4, size: 9.5, font: fontBold, color: corTinta });
-      page1.drawText(`½:${mq.metade} | ⅕:${mq.quinto}`, { x: colX + 5, y: y - 17, size: 8, font: fontSerif, color: corTinta });
-    });
-
-    // Derivados
-    y -= 40;
-    page1.drawText(
-      `PV: ${deriv.pvAtual ?? deriv.pvMax}/${deriv.pvMax}   |   Sanidade: ${deriv.sanAtual ?? deriv.sanInicial}/${deriv.sanMax} (Inic. ${deriv.sanInicial})   |   Magia (PM): ${deriv.pmAtual ?? deriv.pmMax}/${deriv.pmMax}   |   Sorte: ${deriv.sorteAtual ?? deriv.sorteInicial}%   |   MOV: ${deriv.mov}   |   Dano Extra: ${deriv.danoExtra}   |   Corpo: ${deriv.corpo}`,
-      { x: 28, y, size: 9, font: fontBold, color: corTinta }
-    );
-    y -= 10;
-    page1.drawLine({ start: { x: 24, y }, end: { x: 571, y }, thickness: 1, color: corLinha });
-
-    // Perícias em 3 colunas
-    y -= 15;
-    page1.drawText('PERÍCIAS DO INVESTIGADOR — Valor Regular (½ / ⅕)', { x: 28, y, size: 10, font: fontBold, color: corDestaque });
-    y -= 14;
-
-    const periciasOrdenadas = [...(inv.pericias || [])].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-    const porColuna = Math.ceil(periciasOrdenadas.length / 3);
-    const startYPericias = y;
-
-    periciasOrdenadas.forEach((p, index) => {
-      const col = Math.floor(index / porColuna);
-      const row = index % porColuna;
-      const px = 28 + col * 182;
-      const py = startYPericias - row * 12.5;
-      if (py < 150) return;
-
-      const total = Number(p.base || 0) + Number(p.ocupacao || 0) + Number(p.interesse || 0) + Number(p.outros || 0);
-      const mq = R.calcularMetadeQuinto(total);
-      const marca = p.marcada ? '[X]' : '[ ]';
-      const nomeCurto = p.nome.length > 22 ? p.nome.slice(0, 21) + '.' : p.nome;
-      page1.drawText(`${marca} ${nomeCurto}`, { x: px, y: py, size: 8, font: total > p.base ? fontBold : fontSerif, color: corTinta });
-      page1.drawText(`${mq.regular}% (${mq.metade}/${mq.quinto})`, { x: px + 115, y: py, size: 8, font: fontSerif, color: corTinta });
-    });
-
-    // Armas e Combate no rodapé da Página 1
-    let yArmas = 135;
-    page1.drawLine({ start: { x: 24, y: yArmas + 12 }, end: { x: 571, y: yArmas + 12 }, thickness: 1, color: corLinha });
-    page1.drawText('ARMAS E COMBATE (Arma | Regular / Difícil / Extremo | Dano | Alcance | Ataques | Munição | Defeito)', {
-      x: 28,
-      y: yArmas,
-      size: 9.5,
-      font: fontBold,
-      color: corDestaque
-    });
-    yArmas -= 14;
-
-    (inv.armas || []).slice(0, 7).forEach((arma) => {
-      const perVal = obterValorPericia(inv, arma.periciaId) || 25;
-      const mq = R.calcularMetadeQuinto(perVal);
-      const danoFmt = R.formatarDanoArma(arma.danoBase, arma.somaDX, deriv.danoExtra);
-      const linha = `${arma.nome}  —  ${mq.regular}% / ${mq.metade}% / ${mq.quinto}%  |  Dano: ${danoFmt}  |  Alc: ${arma.alcance}  |  Atq: ${arma.ataques}  |  Mun: ${arma.municao}  |  Def: ${arma.defeito}`;
-      page1.drawText(linha.slice(0, 108), { x: 28, y: yArmas, size: 8.5, font: fontSerif, color: corTinta });
-      yArmas -= 13;
-    });
-
-    // PÁGINA 2: Antecedentes, Equipamento, Dinheiro e Companheiros
-    const page2 = pdfDoc.addPage([595.28, 841.89]);
-    page2.drawRectangle({ x: 0, y: 0, width: 595.28, height: 841.89, color: corFundo });
-    drawHeader(page2, 'Página 2: Antecedentes, Equipamentos & Pertences, Dinheiro & Recursos, Companheiros');
-
-    let y2 = 764;
-    const ant = inv.antecedentes || {};
-    const blocosAnt = [
-      { titulo: 'Descrição Pessoal', texto: ant.descricaoPessoal },
-      { titulo: 'Ideologia / Crenças', texto: ant.ideologiaCrencas },
-      { titulo: 'Pessoas Significativas', texto: ant.pessoasSignificativas },
-      { titulo: 'Locais Importantes', texto: ant.locaisImportantes },
-      { titulo: 'Pertences Queridos', texto: ant.pertencesQueridos },
-      { titulo: 'Características', texto: ant.caracteristicas },
-      { titulo: 'Ferimentos & Cicatrizes', texto: ant.ferimentosCicatrizes },
-      { titulo: 'Fobias & Manias', texto: ant.fobiasManias },
-      { titulo: 'Tomos Arcanos, Feitiços & Artefatos', texto: ant.tomosFeiticos },
-      { titulo: 'Encontros com Entidades Estranhas', texto: ant.encontrosEntidades }
-    ];
-
-    blocosAnt.forEach((b) => {
-      if (y2 < 240) return;
-      const ehChave = ant.conexaoChave === b.titulo ? ' ★ [CONEXÃO-CHAVE]' : '';
-      page2.drawText(`${b.titulo}${ehChave}:`, { x: 28, y: y2, size: 9.5, font: fontBold, color: corDestaque });
-      y2 -= 13;
-      const txt = (b.texto || '—').replace(/\r?\n/g, ' | ').slice(0, 110);
-      page2.drawText(txt, { x: 34, y: y2, size: 9, font: fontSerif, color: corTinta });
-      y2 -= 18;
-    });
-
-    page2.drawLine({ start: { x: 24, y: y2 + 6 }, end: { x: 571, y: y2 + 6 }, thickness: 1, color: corLinha });
-    y2 -= 10;
-
-    // Finanças e Equipamentos
-    const fin = R.calcularFinancas1920(obterValorPericia(inv, 'nivel_de_credito'));
-    page2.drawText('DINHEIRO & RECURSOS (Década de 1920)', { x: 28, y: y2, size: 10, font: fontBold, color: corDestaque });
-    y2 -= 14;
-    page2.drawText(
-      `Nível de Crédito: ${fin.nivelCredito}% (${fin.padraoVida})   |   Nível de Gastos: ${inv.financasCustom?.nivelGastos || fin.nivelGastosTexto}   |   Dinheiro: ${inv.financasCustom?.dinheiro || fin.dinheiroTexto}   |   Patrimônio: ${inv.financasCustom?.patrimonio || fin.patrimonioTexto}`,
-      { x: 28, y: y2, size: 9, font: fontBold, color: corTinta }
-    );
-    y2 -= 20;
-
-    page2.drawText('EQUIPAMENTO & PERTENCES:', { x: 28, y: y2, size: 10, font: fontBold, color: corDestaque });
-    y2 -= 14;
-    const eqTexto = (inv.equipamentos || []).join('  •  ') || 'Nenhum equipamento listado.';
-    page2.drawText(eqTexto.slice(0, 115), { x: 28, y: y2, size: 9, font: fontSerif, color: corTinta });
-    if (eqTexto.length > 115) {
-      y2 -= 12;
-      page2.drawText(eqTexto.slice(115, 230), { x: 28, y: y2, size: 9, font: fontSerif, color: corTinta });
-    }
-    y2 -= 22;
-
-    page2.drawText('COMPANHEIROS INVESTIGADORES:', { x: 28, y: y2, size: 10, font: fontBold, color: corDestaque });
-    y2 -= 14;
-    (inv.companheiros || []).slice(0, 5).forEach((c) => {
-      page2.drawText(`• ${c.personagem || 'Investigador'} (Jogador: ${c.jogador || '—'}) — ${c.notas || ''}`, {
-        x: 34,
-        y: y2,
-        size: 8.5,
-        font: fontSerif,
-        color: corTinta
-      });
-      y2 -= 12;
-    });
-
-    return await pdfDoc.save();
+    throw new Error('Template oficial não carregado.');
   }
 
   return {
     inspecionarCamposPDF,
+    criarMapaAcroFormOficial,
     preencherPDFEditavel,
+    exportarNaFichaOficialAnexada,
     gerarPDFNativoDuasPaginas
   };
 })();
