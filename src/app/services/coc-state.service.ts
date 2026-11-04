@@ -59,6 +59,7 @@ export class CocStateService {
   public readonly toastRolagemVisivel = signal<boolean>(false);
   public readonly painelVitaisAberto = signal<boolean>(false);
   public readonly cardAntecedenteAberto = signal<string | null>(null);
+  public readonly exportandoPDF = signal<boolean>(false);
 
   // Filtros
   public readonly filtroPericiaWizard = signal<string>('ocupacionais');
@@ -707,20 +708,90 @@ export class CocStateService {
     this.historicoRolagens.set(hist);
   }
 
-  // --- EXPORTAÇÃO PDF OFICIAL ---
-  public exportarFichaOficialPDF(achatado = false): void {
-    if (this.PDFExport && this.PDFExport.exportarNaFichaOficialAnexada) {
-      this.PDFExport.exportarNaFichaOficialAnexada(this.inv(), { achatado });
-    } else {
-      alert('Módulo de exportação PDF não encontrado.');
+    // --- DOWNLOAD E EXPORTAÇÃO DE ARQUIVOS (PDF OFICIAL & JSON) ---
+  public baixarBytes(bytes: Uint8Array | ArrayBuffer, nomeArquivo: string, mimeType = 'application/pdf'): void {
+    const blob = new Blob([bytes as any], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nomeArquivo;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      if (a.parentNode) {
+        document.body.removeChild(a);
+      }
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
+  public async exportarFichaOficialPDF(achatado = false): Promise<void> {
+    const inv = this.inv();
+    const nomeLimpo = (((inv.identidade && inv.identidade.nome) || 'investigador'))
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'investigador';
+
+    const sufixo = achatado ? '-impressao' : '-editavel';
+    const nomeArquivo = `ficha-oficial-coc7e-${nomeLimpo}${sufixo}.pdf`;
+
+    if (!this.PDFExport || !this.PDFExport.exportarNaFichaOficialAnexada) {
+      alert('Módulo de exportação PDF ainda não está carregado no navegador. Por favor, aguarde alguns instantes e tente novamente.');
+      return;
+    }
+
+    this.exportandoPDF.set(true);
+    try {
+      const res = await this.PDFExport.exportarNaFichaOficialAnexada(inv, { achatarCampos: achatado });
+      if (res && res.bytes) {
+        this.baixarBytes(res.bytes, nomeArquivo, 'application/pdf');
+      } else {
+        throw new Error('O gerador de PDF não retornou os bytes do arquivo.');
+      }
+    } catch (err: any) {
+      console.error('Erro na exportação da ficha oficial:', err);
+      alert('Erro ao exportar a ficha oficial em PDF: ' + (err?.message || err));
+    } finally {
+      this.exportandoPDF.set(false);
     }
   }
 
-  public gerarPDFNativo(): void {
+  public async gerarPDFNativo(): Promise<void> {
+    const inv = this.inv();
+    const nomeLimpo = (((inv.identidade && inv.identidade.nome) || 'investigador'))
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'investigador';
+
     if (this.PDFExport && this.PDFExport.gerarPDFNativoDuasPaginas) {
-      this.PDFExport.gerarPDFNativoDuasPaginas(this.inv());
-    } else {
-      window.print();
+      try {
+        const bytes = await this.PDFExport.gerarPDFNativoDuasPaginas(inv);
+        if (bytes) {
+          this.baixarBytes(bytes, `ficha-coc7e-${nomeLimpo}.pdf`, 'application/pdf');
+          return;
+        }
+      } catch (e) {
+        console.warn('Falha no gerador nativo, usando impressão nativa:', e);
+      }
     }
+    window.print();
+  }
+
+  public exportarJSON(): void {
+    const inv = this.inv();
+    const nomeLimpo = (((inv.identidade && inv.identidade.nome) || 'investigador'))
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'investigador';
+    const jsonStr = JSON.stringify(inv, null, 2);
+    const bytes = new TextEncoder().encode(jsonStr);
+    this.baixarBytes(bytes, `investigador-${nomeLimpo}.json`, 'application/json');
   }
 }

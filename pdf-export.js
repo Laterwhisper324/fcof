@@ -40,16 +40,36 @@ window.CoC7e.PDFExport = (function () {
    * Obtém os bytes do template PDF oficial embutido (ou via fetch se necessário).
    * @returns {Promise<Uint8Array>}
    */
+  function obterPDFLib() {
+    if (typeof window !== 'undefined' && window.PDFLib) return window.PDFLib;
+    if (typeof self !== 'undefined' && self.PDFLib) return self.PDFLib;
+    if (typeof globalThis !== 'undefined' && globalThis.PDFLib) return globalThis.PDFLib;
+    return null;
+  }
+
+  function obterCoC7e() {
+    if (typeof window !== 'undefined' && window.CoC7e) return window.CoC7e;
+    if (typeof self !== 'undefined' && self.CoC7e) return self.CoC7e;
+    if (typeof globalThis !== 'undefined' && globalThis.CoC7e) return globalThis.CoC7e;
+    return {};
+  }
+
   async function obterBytesTemplateOficial() {
-    if (window.CoC7e.FICHA_OFICIAL_PDF_BASE64) {
-      return base64ParaUint8Array(window.CoC7e.FICHA_OFICIAL_PDF_BASE64);
+    const coc = obterCoC7e();
+    if (coc && coc.FICHA_OFICIAL_PDF_BASE64) {
+      return base64ParaUint8Array(coc.FICHA_OFICIAL_PDF_BASE64);
     }
-    const resp = await fetch('data/ficha-oficial-1920.pdf');
-    if (!resp.ok) {
-      throw new Error('Não foi possível carregar o template da ficha oficial.');
+    const caminhos = ['data/ficha-oficial-1920.pdf', '/data/ficha-oficial-1920.pdf', './data/ficha-oficial-1920.pdf'];
+    for (const caminho of caminhos) {
+      try {
+        const resp = await fetch(caminho);
+        if (resp && resp.ok) {
+          const buf = await resp.arrayBuffer();
+          return new Uint8Array(buf);
+        }
+      } catch (_) {}
     }
-    const buf = await resp.arrayBuffer();
-    return new Uint8Array(buf);
+    throw new Error('Não foi possível carregar o template da ficha oficial.');
   }
 
   /**
@@ -477,7 +497,9 @@ window.CoC7e.PDFExport = (function () {
       throw new Error('Biblioteca pdf-lib não está disponível.');
     }
 
-    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const PDFLib = obterPDFLib();
+    if (!PDFLib) throw new Error("Biblioteca pdf-lib não está disponível.");
+    const { PDFDocument, StandardFonts, rgb } = PDFLib;
     const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
     const fontHelvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const form = pdfDoc.getForm();

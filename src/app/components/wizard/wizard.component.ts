@@ -881,11 +881,11 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   <button type="button" class="btn btn-primary" (click)="svc.modoView.set('sheet')">
                     Ir para a Ficha Viva Interativa →
                   </button>
-                  <button type="button" class="btn" (click)="svc.exportarFichaOficialPDF(false)">
-                    📄 Exportar na Ficha Oficial Editável (PDF)
+                  <button type="button" class="btn" (click)="svc.exportarFichaOficialPDF(false)" [disabled]="svc.exportandoPDF()">
+                    @if (svc.exportandoPDF()) { Gerando PDF... } @else { Exportar na Ficha Oficial Editável (PDF) }
                   </button>
                   <button type="button" class="btn" (click)="svc.gerarPDFNativo()">
-                    🖨️ Visualizar Impressão A4 Oficial
+                    Visualizar Impressão A4 Oficial
                   </button>
                 </div>
               </div>

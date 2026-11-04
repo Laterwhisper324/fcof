@@ -71,6 +71,7 @@ import { CocStateService } from '../../services/coc-state.service';
             type="button"
             class="btn btn-sm btn-primary"
             (click)="svc.exportarFichaOficialPDF(false)"
+            [disabled]="svc.exportandoPDF()"
             title="Exportar na Ficha Oficial Editável de 2 páginas (AcroForm dos Anos 1920)"
           >
             Exportar PDF
