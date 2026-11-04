@@ -212,7 +212,7 @@ input[type="number"],
 }
 
 .header-inner {
-  max-width: 1400px;
+  max-width: 1120px;
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
@@ -389,7 +389,7 @@ input[type="number"],
    ========================================================================== */
 
 main.app-main {
-  max-width: 1400px;
+  max-width: 1120px;
   margin: 1.25rem auto 3rem;
   padding: 0 1rem;
 }
@@ -453,17 +453,30 @@ main.app-main {
    STEPPER DO ASSISTENTE DE CRIAÇÃO (WIZARD DE 9 PASSOS)
    ========================================================================== */
 
+.wizard-container {
+  max-width: 1120px;
+  margin: 1.25rem auto 3rem;
+  padding: 0 1rem;
+}
+
+.wizard-steps-nav {
+  max-width: 1040px;
+  margin: 0 auto 1.5rem;
+  width: 100%;
+}
+
 .wizard-progress {
   margin-bottom: 1.25rem;
 }
 
 .wizard-steps-list {
   list-style: none;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   gap: 0.35rem;
+  justify-content: center;
 }
 
 .wizard-step-btn {
@@ -1238,6 +1251,7 @@ main.app-main {
 .segmented-control {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   background: var(--ground);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1288,9 +1302,10 @@ main.app-main {
 
 .wizard-progress-bar-track {
   width: 100%;
+  max-width: 1040px;
   height: 4px;
   background: var(--border);
-  margin-top: 0.65rem;
+  margin: 0.65rem auto 0;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -1545,9 +1560,9 @@ main.app-main {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .sheet-top-grid {
@@ -1780,6 +1795,13 @@ main.app-main {
 /* ==========================================================================
    RESPONSIVIDADE (DISPOSITIVOS MÓVEIS)
    ========================================================================== */
+
+@media (max-width: 1024px) {
+  .wizard-steps-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+  }
+}
 
 @media (max-width: 900px) {
   .sheet-top-grid {
