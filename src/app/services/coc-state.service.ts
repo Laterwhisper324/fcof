@@ -8,6 +8,7 @@ import {
   D100RollData,
   RollAvaliacao
 } from '../models/coc.models';
+import { ITEM_ICON_PRESETS, obterIconePadrao } from '../utils/item-icons';
 
 const STORAGE_KEY = 'coc7e_investigadores_v2';
 const ACTIVE_KEY = 'coc7e_ativo_id_v2';
@@ -55,6 +56,8 @@ export class CocStateService {
 
   // Modais e gavetas
   public readonly modalAberto = signal<string | null>(null);
+  public readonly armaEmEdicao = signal<ArmaInvestigador | null>(null);
+  public readonly localizacaoNovoItem = signal<'corpo' | 'mochila'>('corpo');
   public readonly gavetaDadosAberta = signal<boolean>(false);
   public readonly toastRolagemVisivel = signal<boolean>(false);
   public readonly painelVitaisAberto = signal<boolean>(false);
@@ -214,7 +217,73 @@ export class CocStateService {
           municao: 0,
           defeito: 100,
           somaDX: 'completo',
-          categoria: 'Corpo a Corpo'
+          categoria: 'Corpo a Corpo',
+          localizacao: 'corpo',
+          tipoItem: 'arma',
+          imagemUrl: ITEM_ICON_PRESETS[4].svgDataUri
+        },
+        {
+          id: 'w_revolver',
+          nome: 'Revólver .38 Especial',
+          periciaNome: 'Armas de Fogo (Pistola)',
+          danoBase: '1D10',
+          alcance: '15m',
+          disparos: '1(3)',
+          municao: 6,
+          defeito: 100,
+          somaDX: 'nenhum',
+          categoria: 'Armas de Fogo',
+          localizacao: 'corpo',
+          tipoItem: 'arma',
+          imagemUrl: ITEM_ICON_PRESETS[0].svgDataUri
+        },
+        {
+          id: 'w_corda',
+          nome: 'Corda (15 metros)',
+          periciaNome: '',
+          danoBase: '-',
+          alcance: '15m',
+          disparos: '-',
+          municao: 0,
+          defeito: 100,
+          somaDX: 'nenhum',
+          categoria: 'Equipamento',
+          localizacao: 'mochila',
+          tipoItem: 'geral',
+          observacoes: 'Corda resistente de cânhamo',
+          imagemUrl: ITEM_ICON_PRESETS[5].svgDataUri
+        },
+        {
+          id: 'w_gazuas',
+          nome: 'Gazuas',
+          periciaNome: 'Chaveiro',
+          danoBase: '-',
+          alcance: 'Toque',
+          disparos: '-',
+          municao: 0,
+          defeito: 100,
+          somaDX: 'nenhum',
+          categoria: 'Ferramenta',
+          localizacao: 'mochila',
+          tipoItem: 'geral',
+          observacoes: 'Chaves-mestras e michas de arrombamento',
+          imagemUrl: ITEM_ICON_PRESETS[6].svgDataUri
+        },
+        {
+          id: 'w_lanterna',
+          nome: 'Lanterna de Latão',
+          periciaNome: '',
+          danoBase: '-',
+          alcance: '20m',
+          disparos: '-',
+          municao: 0,
+          defeito: 100,
+          somaDX: 'nenhum',
+          categoria: 'Equipamento',
+          localizacao: 'mochila',
+          tipoItem: 'geral',
+          observacoes: 'Lanterna portátil a pilha',
+          imagemUrl: ITEM_ICON_PRESETS[8].svgDataUri
         }
       ],
       equipamentos: [
@@ -279,7 +348,14 @@ export class CocStateService {
       if (json) {
         const parsed = JSON.parse(json);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          parsed.forEach((inv) => this.recalcularDerivadosEPericiasInterno(inv, { resetarAtuais: false }));
+          parsed.forEach((inv) => {
+            (inv.armas || []).forEach((a: any, idx: number) => {
+              if (!a.localizacao) a.localizacao = idx < 2 ? 'corpo' : 'mochila';
+              if (!a.imagemUrl) a.imagemUrl = obterIconePadrao(a.nome);
+              if (!a.tipoItem) a.tipoItem = a.danoBase && a.danoBase !== '-' ? 'arma' : 'geral';
+            });
+            this.recalcularDerivadosEPericiasInterno(inv, { resetarAtuais: false });
+          });
           this.investigadores.set(parsed);
           const act = parsed.find((i) => i.id === activeId) ? (activeId as string) : parsed[0].id;
           this.investigadorAtivoId.set(act);
@@ -655,6 +731,20 @@ export class CocStateService {
     this.ultimaRolagem.set(atualizado);
     const hist = this.historicoRolagens().map((item) => (item.id === ult.id ? atualizado : item));
     this.historicoRolagens.set(hist);
+  }
+
+  public rolarAtaqueArma(arma: ArmaInvestigador): void {
+    if (!arma.periciaNome) {
+      this.rolarDanoArma(arma);
+      return;
+    }
+    const per = (this.inv().pericias || []).find(
+      (p) => p.nome.toLowerCase().trim() === arma.periciaNome.toLowerCase().trim()
+    );
+    const alvo = per ? this.obterTotalPericiaObj(per) : 25;
+    this.rolarPericiaOuAtributo('Ataque: ' + arma.nome + ' (' + arma.periciaNome + ')', alvo, {
+      periciaId: per?.id
+    });
   }
 
   public rolarDanoArma(arma: ArmaInvestigador): void {

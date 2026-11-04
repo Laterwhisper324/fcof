@@ -11,26 +11,27 @@ export interface AtributosMap {
 }
 
 export interface DerivadosInvestigador {
-  pvAtual: number;
   pvMax: number;
-  sanAtual: number;
-  sanInicial: number;
-  sanMax: number;
-  pmAtual: number;
-  pmMax: number;
-  sorteAtual: number;
-  sorteInicial: number;
-  mov: number;
-  movBase?: number;
-  penalidadeMOV?: number;
-  danoExtra: string;
-  corpo: number;
-  esquivaBase: number;
+  pvAtual: number;
   lesaoGrave: boolean;
   morrendo: boolean;
   inconsciente: boolean;
+  sanInicial: number;
+  sanMax: number;
+  sanAtual: number;
   insanidadeTemporaria: boolean;
   insanidadeIndefinida: boolean;
+  pmMax: number;
+  pmAtual: number;
+  sorteInicial: number;
+  sorteAtual: number;
+  esquivaBase: number;
+  danoExtra: string;
+  corpo: number;
+  mov: number;
+  movBase?: number;
+  penalidadeMOV?: number;
+  taxaMovimento?: number;
   overrideManual?: boolean;
 }
 
@@ -97,6 +98,9 @@ export interface ArmaInvestigador {
   observacoes?: string;
   categoria?: string;
   custo1920?: string;
+  imagemUrl?: string;
+  localizacao?: 'corpo' | 'mochila';
+  tipoItem?: 'arma' | 'geral';
 }
 
 export interface AntecedentesInvestigador {
@@ -163,7 +167,7 @@ export interface RollAvaliacao {
   regular: number;
   dificil: number;
   extremo: number;
-  limiteDesastre?: number;
+  desastreMinimo?: number;
 }
 
 export interface RegistroRolagem {
@@ -175,12 +179,12 @@ export interface RegistroRolagem {
   d100: D100RollData;
   avaliacao: RollAvaliacao;
   forcada?: boolean;
-  ehTesteSorte?: boolean;
+  sorteGasta?: number;
   ehTesteSanidade?: boolean;
+  ehTesteSorte?: boolean;
   periciaId?: string | null;
   podeGastarSorte?: boolean;
   sorteParaRegular?: number;
   sorteParaDificil?: number;
   sorteParaExtremo?: number;
-  sorteGasta?: number;
 }

@@ -125,7 +125,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
               <!-- Perícias mais Altas -->
               <div class="sheet-section-box" style="margin-bottom:1rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-                  <h3 style="margin:0; font-size:1.05rem;">⭐ Perícias Mais Altas (Rolagem Rápida)</h3>
+                  <h3 style="margin:0; font-size:1.05rem;">⛤ Perícias Mais Altas (Rolagem Rápida)</h3>
                   <button type="button" class="btn btn-sm" (click)="svc.abaFicha.set('pericias')">Ver Todas →</button>
                 </div>
                 <div class="focus-skills-grid">
@@ -182,7 +182,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                 [class.active]="svc.modoVisaoPericiasFicha() === 'destaque'"
                 (click)="svc.modoVisaoPericiasFicha.set('destaque')"
               >
-                ⭐ Perícias em Destaque ({{ periciasDestaque().length }})
+                ⛤ Perícias em Destaque ({{ periciasDestaque().length }})
               </button>
               <button
                 type="button"
@@ -237,66 +237,157 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
 
       <!-- ==================== ABA 3: COMBATE & ARMAS (TAREFA 7 - MODAL CENTRALIZADO) ==================== -->
       @if (svc.abaFicha() === 'combate') {
-        <div class="deco-frame" style="margin-bottom:1.5rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
-            <div>
-              <h3 style="margin:0; font-family:var(--font-serif); font-size:1.25rem;">Arsenal e Ações de Combate</h3>
-              <span style="font-size:0.84rem; color:var(--text-muted);">Clique no botão de Dano para rolar dados diretamente na mesa.</span>
+        <div class="deco-frame sheet-tab-content" style="margin-bottom:1.5rem;">
+          <!-- Barra de Título do Arsenal (Tag ARSENAL + Botão + ITEM) -->
+          <div class="arsenal-header">
+            <div class="arsenal-badge-tag">
+              ARSENAL
             </div>
-
-            <!-- Botão que abre o Modal Centralizado (Tarefa 7) -->
-            <button type="button" class="btn btn-primary btn-sm" (click)="abrirModalArma()">
-              + Adicionar Arma
+            <button type="button" class="btn btn-primary btn-sm" (click)="abrirModalNovoItem('corpo')">
+              + ITEM
             </button>
           </div>
 
-          <div class="skills-table-wrapper custom-scrollbar">
-            <table class="skills-table">
-              <thead>
-                <tr>
-                  <th>Arma</th>
-                  <th>Perícia</th>
-                  <th>Dano Base</th>
-                  <th>Alcance</th>
-                  <th>Tiros</th>
-                  <th>Munição</th>
-                  <th>Defeito</th>
-                  <th>Ações Rápidas</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (w of svc.inv().armas; track w.id) {
-                  <tr>
-                    <td><strong>{{ w.nome }}</strong></td>
-                    <td>{{ w.periciaNome }}</td>
-                    <td style="font-variant-numeric:tabular-nums; font-weight:bold;">{{ w.danoBase }}</td>
-                    <td>{{ w.alcance }}</td>
-                    <td>{{ w.disparos }}</td>
-                    <td style="font-variant-numeric:tabular-nums;">{{ w.municao }}</td>
-                    <td style="font-variant-numeric:tabular-nums;">{{ w.defeito }}</td>
-                    <td style="white-space:nowrap;">
-                      <button
-                        type="button"
-                        class="btn btn-primary btn-sm"
-                        style="padding:0.15rem 0.5rem; font-size:0.74rem; margin-right:0.3rem;"
-                        (click)="svc.rolarDanoArma(w)"
-                        title="Rolar Dano da Arma com 1 Clique"
-                      >
-                        🎲 Dano
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-danger"
-                        style="padding:0.15rem 0.45rem; font-size:0.74rem;"
-                        (click)="removerArma(w.id)"
-                      >
-                        ✕
-                      </button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+          <!-- Seção 1: CORPO (3/3) -->
+          <div class="arsenal-category-header">
+            <span class="arsenal-category-bar"></span>
+            <span>CORPO ({{ itensCorpo().length }}/3)</span>
+          </div>
+
+          <div class="arsenal-grid">
+            @for (item of itensCorpo(); track item.id) {
+              <div class="arsenal-card">
+                <!-- Imagem do item / arma -->
+                <div class="arsenal-img-container" (click)="trocarImagemItem(item)" title="Clique para trocar imagem">
+                  @if (item.imagemUrl) {
+                    <img [src]="item.imagemUrl" [alt]="item.nome" loading="lazy" />
+                  } @else {
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
+                      <span>📷</span><br /><span>+ Imagem</span>
+                    </div>
+                  }
+                  <div class="arsenal-img-overlay">
+                    <span>📷 Trocar Imagem</span>
+                  </div>
+                </div>
+
+                <!-- Informações em baixo -->
+                <div class="arsenal-card-body">
+                  <div class="arsenal-item-title" [title]="item.nome">{{ item.nome }}</div>
+                  <div class="arsenal-item-meta">
+                    @if (item.tipoItem !== 'geral' && item.danoBase && item.danoBase !== '-') {
+                      <span><strong>Dano:</strong> {{ item.danoBase }} | {{ item.alcance }}</span>
+                    } @else {
+                      <span>{{ item.observacoes || item.categoria || 'Equipamento' }}</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Ações do Card (Dado/Ação, Editar, Excluir) -->
+                <div class="arsenal-card-footer">
+                  <button
+                    type="button"
+                    class="arsenal-action-btn btn-roll"
+                    (click)="executarAcaoItem(item)"
+                    [title]="item.tipoItem !== 'geral' && item.danoBase && item.danoBase !== '-' ? 'Rolar Dano (' + item.danoBase + ')' : 'Inspecionar Item'"
+                  >
+                    🎲
+                  </button>
+                  <button
+                    type="button"
+                    class="arsenal-action-btn"
+                    (click)="editarItem(item)"
+                    title="Editar dados e imagem do item"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    class="arsenal-action-btn btn-delete"
+                    (click)="removerArma(item.id)"
+                    title="Remover item do inventário"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <div class="arsenal-empty-slot" (click)="abrirModalNovoItem('corpo')" style="grid-column: 1 / -1; height: 120px;" title="Clique para equipar um item no corpo">
+                <span style="font-size:1.2rem; color:var(--text-faint);">+</span>
+                <span style="font-size:0.8rem; color:var(--text-muted);">Nenhum item equipado no corpo. Clique para equipar.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Seção 2: MOCHILA (0/6) -->
+          <div class="arsenal-category-header" style="margin-top:1.5rem;">
+            <span class="arsenal-category-bar"></span>
+            <span>MOCHILA ({{ itensMochila().length }}/6)</span>
+          </div>
+
+          <div class="arsenal-grid">
+            @for (item of itensMochila(); track item.id) {
+              <div class="arsenal-card">
+                <div class="arsenal-img-container" (click)="trocarImagemItem(item)" title="Clique para trocar imagem">
+                  @if (item.imagemUrl) {
+                    <img [src]="item.imagemUrl" [alt]="item.nome" loading="lazy" />
+                  } @else {
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
+                      <span>📷</span><br /><span>+ Imagem</span>
+                    </div>
+                  }
+                  <div class="arsenal-img-overlay">
+                    <span>📷 Trocar Imagem</span>
+                  </div>
+                </div>
+
+                <div class="arsenal-card-body">
+                  <div class="arsenal-item-title" [title]="item.nome">{{ item.nome }}</div>
+                  <div class="arsenal-item-meta">
+                    @if (item.tipoItem !== 'geral' && item.danoBase && item.danoBase !== '-') {
+                      <span><strong>Dano:</strong> {{ item.danoBase }} | {{ item.alcance }}</span>
+                    } @else {
+                      <span>{{ item.observacoes || item.categoria || 'Equipamento' }}</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="arsenal-card-footer">
+                  <button
+                    type="button"
+                    class="arsenal-action-btn btn-roll"
+                    (click)="executarAcaoItem(item)"
+                    [title]="item.tipoItem !== 'geral' && item.danoBase && item.danoBase !== '-' ? 'Rolar Dano (' + item.danoBase + ')' : 'Inspecionar Item'"
+                  >
+                    🎲
+                  </button>
+                  <button
+                    type="button"
+                    class="arsenal-action-btn"
+                    (click)="editarItem(item)"
+                    title="Editar dados e imagem do item"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    class="arsenal-action-btn btn-delete"
+                    (click)="removerArma(item.id)"
+                    title="Remover item da mochila"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- Slots vazios da mochila (iguais aos da imagem de referência) -->
+            @for (slot of slotsVaziosMochila(); track $index) {
+              <div class="arsenal-empty-slot" (click)="abrirModalNovoItem('mochila')" title="Clique para adicionar item à mochila">
+                <span style="font-size:1.5rem; color:var(--text-faint);">+</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Vazio</span>
+              </div>
+            }
           </div>
         </div>
       }
@@ -466,6 +557,45 @@ export class SheetComponent {
     this.svc.atualizarInvestigadorAtivo((inv) => {
       inv.antecedentes[chave] = val;
     });
+  }
+
+    public readonly itensCorpo = computed(() => {
+    return (this.svc.inv().armas || []).filter((w) => (w.localizacao || 'corpo') === 'corpo');
+  });
+
+  public readonly itensMochila = computed(() => {
+    return (this.svc.inv().armas || []).filter((w) => w.localizacao === 'mochila');
+  });
+
+  public readonly slotsVaziosMochila = computed(() => {
+    const qtd = this.itensMochila().length;
+    const faltam = Math.max(1, 6 - qtd);
+    return new Array(faltam);
+  });
+
+  public abrirModalNovoItem(localizacao: 'corpo' | 'mochila' = 'corpo'): void {
+    this.svc.armaEmEdicao.set(null);
+    this.svc.localizacaoNovoItem.set(localizacao);
+    this.svc.modalAberto.set('arma');
+  }
+
+  public editarItem(item: ArmaInvestigador): void {
+    this.svc.armaEmEdicao.set({ ...item });
+    this.svc.modalAberto.set('arma');
+  }
+
+  public executarAcaoItem(item: ArmaInvestigador): void {
+    if (item.danoBase && item.danoBase !== '-') {
+      this.svc.rolarDanoArma(item);
+    } else if (item.periciaNome) {
+      this.svc.rolarAtaqueArma(item);
+    } else {
+      this.svc.rolarPericiaOuAtributo('Inspecionar / Usar ' + item.nome, 50);
+    }
+  }
+
+  public trocarImagemItem(item: ArmaInvestigador): void {
+    this.editarItem(item);
   }
 
   public abrirModalArma(): void {
