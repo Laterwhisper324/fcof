@@ -716,17 +716,119 @@ main.app-main {
 .live-attrs-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
+/* Quadrado de Características:
+   - No modo claro: cor do quadrado fica a mesma cor do modo escuro (#171b1e)
+   - No hover: muda de cor para a mesma cor do fundo do modo claro (#f4efe6)
+   - Fonte do nome do atributo maior que a das outras informações
+*/
 .live-attr-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem;
+  width: 100%;
+  min-height: 112px;
+  padding: 0.85rem 0.45rem 0.75rem;
+  box-sizing: border-box;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  border: 1px solid #2d363d;
+  background-color: #171b1e;
+  color: #e8e3d8;
+  font-family: var(--font-sans);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  user-select: none;
+}
+
+/* No modo escuro, mantém a base escura tonal */
+[data-theme="dark"] .live-attr-box {
+  background-color: #171b1e;
+  border: 1px solid #2d363d;
+  color: #e8e3d8;
+}
+
+/* Sigla do Atributo: Bem maior que as outras informações */
+.live-attr-sigla {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  color: #f4efe6;
+  transition: color 0.15s ease;
+}
+
+/* Valor Regular (Atual): Tamanho equilibrado e números tabulares */
+.live-attr-valor {
+  font-size: 1.12rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #cba358;
+  margin: 0.2rem 0;
+  line-height: 1.1;
+  transition: color 0.15s ease;
+}
+
+/* Frações ½ e ⅕ organizadas em badges lado a lado */
+.live-attr-fractions {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.live-attr-frac-badge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.12rem 0.35rem;
+  border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+  background-color: #232b30;
+  color: #a4adb0;
+  border: 1px solid #333d45;
+  line-height: 1.15;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Hover: em ambos os modos, muda para a MESMA COR DO FUNDO DO MODO CLARO (#f4efe6) */
+.live-attr-box:hover {
+  background-color: #f4efe6 !important;
+  color: #191816 !important;
+  border-color: #966f33 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(22, 19, 14, 0.22); /* taste-skill-ignore: card hover elevation */
+}
+
+.live-attr-box:hover .live-attr-sigla {
+  color: #1a4233 !important;
+}
+
+.live-attr-box:hover .live-attr-valor {
+  color: #191816 !important;
+}
+
+.live-attr-box:hover .live-attr-frac-badge {
+  background-color: #eae3d2 !important;
+  color: #4a4336 !important;
+  border-color: #cfc2ad !important;
+}
+
+.live-attr-box:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(22, 19, 14, 0.15); /* taste-skill-ignore: card active state */
+}
+
+.live-attr-box:focus-visible {
+  outline: 2px solid #966f33;
+  outline-offset: 2px;
 }
 
 .live-skills-columns {

@@ -91,26 +91,28 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
           <div class="sheet-top-grid">
             <!-- Características Clicáveis para Rolagem Direta -->
             <div class="sheet-section-box">
-              <h3 class="sheet-section-title">
-                <span>Características (Clique para Rolar 1D100)</span>
-              </h3>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <h3 class="sheet-section-title" style="margin:0;">
+                  <span>Características (Clique para Rolar 1D100)</span>
+                </h3>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Reg | ½ | ⅕</span>
+              </div>
               <div class="live-attrs-grid">
                 @for (sigla of listaSiglas; track sigla) {
-                  <div class="live-attr-box">
-                    <button
-                      type="button"
-                      class="roll-trigger-btn"
-                      (click)="svc.rolarPericiaOuAtributo('Teste de ' + sigla, svc.inv().atributosFinais[sigla])"
-                      [title]="'Rolar 1D100 contra ' + sigla + ' (' + svc.inv().atributosFinais[sigla] + '%)'"
-                    >
-                      <span class="live-attr-label">{{ sigla }}</span>
-                      <span class="live-attr-regular">{{ svc.inv().atributosFinais[sigla] }}%</span>
-                    </button>
+                  <button
+                    type="button"
+                    class="live-attr-box"
+                    (click)="svc.rolarPericiaOuAtributo('Teste de ' + sigla, svc.inv().atributosFinais[sigla])"
+                    [attr.aria-label]="'Rolar 1D100 de ' + nomesAtributos[sigla] + ' (' + sigla + ' ' + svc.inv().atributosFinais[sigla] + '%)'"
+                    [title]="'Clique para rolar 1D100 de ' + nomesAtributos[sigla] + ' (' + sigla + ': ' + svc.inv().atributosFinais[sigla] + '%)'"
+                  >
+                    <span class="live-attr-sigla">{{ sigla }}</span>
+                    <span class="live-attr-valor">{{ svc.inv().atributosFinais[sigla] }}%</span>
                     <div class="live-attr-fractions">
-                      <span>½: {{ svc.mq(svc.inv().atributosFinais[sigla]).metade }}</span>
-                      <span>⅕: {{ svc.mq(svc.inv().atributosFinais[sigla]).quinto }}</span>
+                      <span class="live-attr-frac-badge" title="Sucesso Difícil (metade)">½ {{ svc.mq(svc.inv().atributosFinais[sigla]).metade }}</span>
+                      <span class="live-attr-frac-badge" title="Sucesso Extremo (quinto)">⅕ {{ svc.mq(svc.inv().atributosFinais[sigla]).quinto }}</span>
                     </div>
-                  </div>
+                  </button>
                 }
               </div>
             </div>
@@ -401,6 +403,16 @@ export class SheetComponent {
   public readonly svc = inject(CocStateService);
 
   public readonly listaSiglas = ['FOR', 'CON', 'TAM', 'DES', 'APA', 'INT', 'POD', 'EDU'];
+  public readonly nomesAtributos: Record<string, string> = {
+    FOR: 'Força',
+    CON: 'Constituição',
+    TAM: 'Tamanho',
+    DES: 'Destreza',
+    APA: 'Aparência',
+    INT: 'Inteligência',
+    POD: 'Poder',
+    EDU: 'Educação'
+  };
   public readonly loreAberto = signal<string | null>(null);
   public novoItemInput = '';
 
