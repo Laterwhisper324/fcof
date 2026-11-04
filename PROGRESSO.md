@@ -44,5 +44,53 @@
 - **`// CONFERIR NO LIVRO (pág. 48)` — Limite Inicial de Perícia (`data/tabelas.js`)**: O teto de `75%` na criação é apresentado na pág. 48 como Regra Opcional.
 - **`// CONFERIR NO LIVRO (pág. 401)` — Lança de Cavalaria (`data/armas.js`)**: Na tabela da pág. 401 consta dano `1D8+1` sem `+DX`.
 
-## 3. Status Final
-Todos os arquivos da arquitetura (HTML, CSS, JS frontend e backend de regras/dados) estão 100% revisados, linkados e sincronizados, sem métodos ou classes faltantes, aprovados no linter e passando em todas as suítes de teste automatizado.
+## 3. Status da Versão Estável
+Todos os arquivos da arquitetura legada e dados (HTML, CSS, JS frontend e backend de regras/dados) estão 100% revisados, linkados e sincronizados, sem métodos ou classes faltantes, aprovados no linter e passando em todas as suítes de teste automatizado.
+
+## 4. Refinamento e Modernização Angular v22 (Branch: `refactor/angular-modern-refinamentos`)
+
+Implementadas com sucesso todas as 8 tarefas de refinamento solicitadas pelo usuário, mantendo 100% da fidelidade estética Arkham 1920 (0 FAIL no taste-skill) e 100% de adesão às regras do Livro Básico 7ª Edição:
+
+1. **Características**:
+   - Cada botão de rolagem possui rótulo visível claro, `aria-label` descritivo, ícone de dado `🎲` e tooltip indicativo.
+   - Exibição explícita da fórmula canônica de rolagem para cada atributo: `3d6×5` para FOR, CON, DES, APA, POD e `(2d6+6)×5` para TAM, INT, EDU.
+
+2. **Idade e Sorte**:
+   - Unificação completa dos 3 blocos (modificadores de EDU, penalidades físicas/aparência e rolagem de Sorte) em um card visual coeso, sem sub-abas fragmentadas.
+   - Aplicação reativa das regras de idade e preservação estrita da regra de juventude (15 a 19 anos rola Sorte 3d6×5 duas vezes e escolhe o maior).
+
+3. **Derivados (Taxa de Movimento - MOV)**:
+   - Corrigido o bug histórico onde `R.calcularMOV` retornava um objeto em vez de número, gerando `[object Object]` ou `NaN`.
+   - Implementação estrita das regras das págs. 33–34:
+     - Se DES < TAM e FOR < TAM: MOV = 7
+     - Se DES ≥ TAM ou FOR ≥ TAM (ou todos iguais): MOV = 8
+     - Se DES > TAM e FOR > TAM: MOV = 9
+     - Penalidade por década de idade: 40–49 (-1), 50–59 (-2), 60–69 (-3), 70–79 (-4), 80+ (-5).
+   - Recálculo reativo em tempo real via Signals sempre que FOR, DES, TAM ou idade mudam.
+
+4. **Ocupação**:
+   - Estilização de checkboxes personalizados vintage no padrão visual 1920s (`.custom-checkbox-input`, `.custom-checkbox-label`).
+   - Scrollbar fina temática (`.custom-scrollbar`) com cores integradas às variáveis do tema.
+   - Limite estrito de 8 perícias de ocupação (incluindo Nível de Crédito), desabilitando os checkboxes restantes ao atingir o limite e exibindo o contador visual `X/8`.
+
+5. **Perícias**:
+   - Controle estrito de pontos de ocupação (fórmula da ocupação) e interesse pessoal (`INT × 2`).
+   - Teto inicial de 75% respeitado em todas as perícias (regra da pág. 48).
+   - Nível de Crédito limitado estritamente à faixa da ocupação.
+   - Mythos de Cthulhu travado em 0% na criação.
+   - Saldos exibidos reativamente com bloqueio imediato e feedback visual de limite atingido.
+
+6. **Antecedentes e Conexões**:
+   - Remoção completa dos botões de sortear aleatório nessa etapa, mantendo a escrita livre do jogador.
+
+7. **Bens e Armas (Modal Centralizado)**:
+   - "Adicionar Arma" abre um modal centralizado com `backdrop-filter: blur(5px)` e overlay escuro semitransparente.
+   - Fechamento por tecla `ESC`, clique no overlay ou botão Fechar.
+   - Trava de rolagem no `body` (`body.modal-open`) e foco gerenciado para acessibilidade.
+   - Catálogo pesquisável de armas da década de 1920 + campos customizáveis.
+
+8. **Migração Angular v22**:
+   - Arquitetura moderna: componentes standalone, Signals (`signal`, `computed`, `effect`), fluxo de controle nativo (`@if`, `@for`) e injeção moderna via `inject()`.
+   - Build de produção gerado com sucesso sem warnings e sem regressão funcional (`npm run build`).
+   - Estética editorial 100% preservada (aprovada no `taste-skill` com 0 FAIL).
+

@@ -1,70 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light" ng-app="coc7eApp">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chamado de Cthulhu 7ª Edição — Dossiê &amp; Ficha Viva de Investigador (Anos 1920)</title>
-  <meta name="description" content="Criador e gerenciador interativo de fichas de investigador para Chamado de Cthulhu 7ª Edição (Década de 1920, PT-BR), com direção de arte editorial dos Anos 1920 e arquitetura modular Angular." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=dist/fcof/browser/index.html">
+  <title>Redirecionando para o Dossiê Chamado de Cthulhu 7ª Edição (Angular v22)...</title>
+  <script>
+    window.location.replace('dist/fcof/browser/index.html');
+  </script>
 </head>
-<body ng-cloak>
-  <noscript>
-    <div style="padding: 2rem; text-align: center; font-family: serif;">
-      É necessário habilitar o JavaScript no navegador para utilizar o Dossiê e Ficha Viva de Chamado de Cthulhu 7ª Edição.
-    </div>
-  </noscript>
-
-  <div id="app-root" aria-live="polite">
-    <coc-app></coc-app>
-  </div>
-
-  <footer class="no-print app-footer">
-    <div class="footer-inner">
-      <span>Chamado de Cthulhu, 7ª Edição (Década de 1920 • Regras Oficiais PT-BR) • Miskatonic University Archives</span>
-      <span class="footer-sep">•</span>
-      <span>100% Offline via <code>file://</code> com salvamento automático em <code>localStorage</code></span>
-      <span class="footer-sep">•</span>
-      <a href="testes.html" class="footer-link">
-        Suíte de Testes Automatizados das Regras (testes.html)
-      </a>
-    </div>
-  </footer>
-
-  <!-- AngularJS 1.8.3 (Local Offline + Fallback CDN) -->
-  <script src="vendor/angular.min.js"></script>
-  <script>
-    if (typeof window.angular === 'undefined') {
-      document.write('<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"><\/script>');
-    }
-  </script>
-
-  <!-- Biblioteca local pdf-lib para geração de PDF e preenchimento da Ficha Oficial AcroForm -->
-  <script src="vendor/pdf-lib.min.js"></script>
-  <script>
-    if (typeof window.PDFLib === 'undefined') {
-      document.write('<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"><\/script>');
-    }
-  </script>
-
-  <!-- Template Embutido da Ficha Oficial Editável (2 páginas, 360 campos AcroForm) -->
-  <script src="data/ficha-oficial-template.js"></script>
-
-  <!-- Camada de Dados do Livro Básico (7ª Edição PT-BR) -->
-  <script src="data/tabelas.js"></script>
-  <script src="data/pericias.js"></script>
-  <script src="data/ocupacoes.js"></script>
-  <script src="data/armas.js"></script>
-
-  <!-- Motor de Regras Puras -->
-  <script src="regras.js"></script>
-
-  <!-- Exportador PDF (AcroForm Oficial 2 páginas + Nativo) -->
-  <script src="pdf-export.js"></script>
-
-  <!-- Aplicação Frontend Angular (Componentes Modulares + Progressive Disclosure) -->
-  <script src="app.js"></script>
+<body style="font-family: serif; padding: 2rem; text-align: center; background: #f4efe6; color: #191816;">
+  <h2>Carregando Dossiê e Ficha Viva de Chamado de Cthulhu 7ª Edição (Angular v22)...</h2>
+  <p>Caso o redirecionamento automático não ocorra, <a href="dist/fcof/browser/index.html" style="color: #1a4233; font-weight: bold;">clique aqui para abrir a aplicação</a>.</p>
 </body>
 </html>

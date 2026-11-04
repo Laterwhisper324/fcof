@@ -1,0 +1,30 @@
+{
+  "name": "fcof-coc7e",
+  "version": "2.0.0",
+  "description": "Dossiê & Ficha Viva de Investigador para Chamado de Cthulhu 7ª Edição (Anos 1920) em Angular v22",
+  "private": true,
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build --base-href ./",
+    "watch": "ng build --watch --configuration development",
+    "test:rules": "node tools/test-integration.js",
+    "lint:style": "node .agents/skills/design-taste-frontend/scripts/lint.mjs style.css"
+  },
+  "dependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@angular/router": "^22.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.2.5",
+    "@angular/cli": "^22.2.5",
+    "@angular/compiler-cli": "^22.2.0",
+    "typescript": "~6.0.2"
+  }
+}
