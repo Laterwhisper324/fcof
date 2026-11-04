@@ -6,10 +6,14 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --base-href ./",
+    "build": "ng build --base-href /",
+    "build:local": "ng build --base-href ./",
     "watch": "ng build --watch --configuration development",
     "test:rules": "node tools/test-integration.js",
     "lint:style": "node .agents/skills/design-taste-frontend/scripts/lint.mjs style.css"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@angular/common": "^22.2.0",
