@@ -11,11 +11,15 @@ import { CocStateService } from '../../services/coc-state.service';
       <div class="header-inner">
         <!-- Logo e Identidade do Investigador Ativo -->
         <div class="brand-block">
-          <div class="brand-seal" aria-hidden="true" title="Selo Arcano (Pentagrama)">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10" stroke-width="1.2" opacity="0.85"/>
-              <polygon points="12,3 14.8,9.5 22,9.8 16.3,14.5 18.5,21.5 12,17.2 5.5,21.5 7.7,14.5 2,9.8 9.2,9.5"/>
-            </svg>
+          <!-- Logotipo com Animação 3D Star (hungry-pig-40 por narmesh_sah) -->
+          <div class="brand-seal" aria-hidden="true" title="Chamado de Cthulhu • 7ª Edição">
+            <div class="star-preloader">
+              <div class="star-crack star-crack1"></div>
+              <div class="star-crack star-crack2"></div>
+              <div class="star-crack star-crack3"></div>
+              <div class="star-crack star-crack4"></div>
+              <div class="star-crack star-crack5"></div>
+            </div>
           </div>
           <div>
             <h1 class="brand-title">Chamado de Cthulhu • 7ª Ed.</h1>
