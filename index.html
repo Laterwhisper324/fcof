@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chamado de Cthulhu 7ª Edição — Criador &amp; Ficha Viva de Investigador (Anos 1920)</title>
+  <meta name="description" content="Criador e gerenciador interativo de fichas de investigador para Chamado de Cthulhu 7ª Edição (Década de 1920, PT-BR), com Assistente em 9 passos, Ficha Viva de 2 páginas, rolador 1d100 e exportação PDF/JSON." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <noscript>
+    <div style="padding: 2rem; text-align: center; font-family: serif;">
+      É necessário habilitar o JavaScript no navegador para utilizar o Criador e Gerenciador de Fichas de Chamado de Cthulhu 7ª Edição.
+    </div>
+  </noscript>
+
+  <div id="app-root" aria-live="polite">
+    <!-- Renderizado dinamicamente por app.js -->
+  </div>
+
+  <footer class="no-print" style="text-align: center; padding: 1.25rem 1rem 2rem; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-color);">
+    <div>
+      <strong>Chamado de Cthulhu — 7ª Edição (Década de 1920 • PT-BR)</strong> • Funciona 100% offline via <code>file://</code> com salvamento automático em <code>localStorage</code>.
+    </div>
+    <div style="margin-top: 0.35rem;">
+      <a href="testes.html" style="color: var(--accent-primary); font-weight: bold; text-decoration: underline;">
+        🧪 Abrir Suíte de Testes Automatizados das Regras do Livro Básico (testes.html)
+      </a>
+    </div>
+  </footer>
+
+  <!-- Biblioteca opcional pdf-lib para geração direta de arquivo .pdf e preenchimento de AcroForm -->
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
+
+  <!-- Camada de Dados do Livro Básico (7ª Edição PT-BR) -->
+  <script src="data/tabelas.js"></script>
+  <script src="data/pericias.js"></script>
+  <script src="data/ocupacoes.js"></script>
+  <script src="data/armas.js"></script>
+
+  <!-- Motor de Regras Puras -->
+  <script src="regras.js"></script>
+
+  <!-- Exportador PDF (AcroForm + Nativo 2 páginas) -->
+  <script src="pdf-export.js"></script>
+
+  <!-- Aplicação e Interface (Wizard 9 Passos + Ficha Viva 2 Páginas) -->
+  <script src="app.js"></script>
+</body>
+</html>

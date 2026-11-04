@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suíte de Testes Automatizados — Chamado de Cthulhu 7ª Edição (Regras do Livro Básico)</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .test-suite-container {
+      max-width: 1120px;
+      margin: 1.5rem auto 3rem;
+      padding: 0 1rem;
+    }
+    .test-group {
+      margin-bottom: 1.15rem;
+    }
+    .test-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.45rem 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.88rem;
+    }
+    .test-item.pass {
+      border-left: 4px solid var(--accent-primary);
+      background: var(--bg-paper);
+    }
+    .test-item.fail {
+      border-left: 4px solid var(--accent-crimson);
+      background: var(--desastre-bg);
+      color: var(--desastre-text);
+      font-weight: bold;
+    }
+    .test-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 3px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .test-badge.pass {
+      background: var(--extremo-bg);
+      color: var(--extremo-text);
+    }
+    .test-badge.fail {
+      background: var(--accent-crimson);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-block">
+        <div class="brand-seal" aria-hidden="true">🧪</div>
+        <div>
+          <h1 class="brand-title">Suíte de Testes — Chamado de Cthulhu 7ª Edição</h1>
+          <p class="brand-subtitle">Validação automatizada de <code>regras.js</code> e <code>data/*.js</code> contra os exemplos do Livro Básico (págs. 30–51, 89–99, 119–156, 401–418)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="btn btn-primary">← Voltar ao Criador &amp; Ficha Viva</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="test-suite-container">
+    <div id="resumo-testes" class="deco-frame" style="margin-bottom: 1.25rem;">
+      Executando testes...
+    </div>
+    <div id="lista-grupos-testes"></div>
+  </main>
+
+  <script src="data/tabelas.js"></script>
+  <script src="data/pericias.js"></script>
+  <script src="data/ocupacoes.js"></script>
+  <script src="data/armas.js"></script>
+  <script src="regras.js"></script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const R = window.CoC7e.Regras;
+      const T = window.CoC7e.TABELAS;
+      const grupos = [];
+      let grupoAtual = null;
+      let totalPassaram = 0;
+      let totalFalharam = 0;
+
+      function iniciarGrupo(titulo) {
+        grupoAtual = { titulo, testes: [] };
+        grupos.push(grupoAtual);
+      }
+
+      function afirmarIgual(descricao, obtido, esperado) {
+        const strObtido = JSON.stringify(obtido);
+        const strEsperado = JSON.stringify(esperado);
+        const passou = strObtido === strEsperado;
+        if (passou) totalPassaram++;
+        else totalFalharam++;
+        grupoAtual.testes.push({
+          descricao,
+          passou,
+          detalhe: passou ? `OK: ${strObtido}` : `Esperado ${strEsperado}, mas obteve ${strObtido}`
+        });
+      }
+
+      // 1. Metade e Quinto (pág. 32, 38, 49 e 50 - Harvey Walters)
+      iniciarGrupo('1. Cálculo de Metade (Difícil ½) e Quinto (Extremo ⅕) — págs. 32, 38, 49 e 50');
+      afirmarIgual('Harvey Walters EDU 84 → Regular 84, Metade 42, Quinto 16 (pág. 38)', R.calcularMetadeQuinto(84), { regular: 84, metade: 42, quinto: 16 });
+      afirmarIgual('Harvey Walters DES 55 → Regular 55, Metade 27, Quinto 11 (pág. 50)', R.calcularMetadeQuinto(55), { regular: 55, metade: 27, quinto: 11 });
+      afirmarIgual('Harvey Walters INT 85 → Regular 85, Metade 42, Quinto 17 (pág. 50)', R.calcularMetadeQuinto(85), { regular: 85, metade: 42, quinto: 17 });
+      afirmarIgual('Harvey Walters POD 45 → Regular 45, Metade 22, Quinto 9 (pág. 50)', R.calcularMetadeQuinto(45), { regular: 45, metade: 22, quinto: 9 });
+      afirmarIgual('Harvey Walters Esquivar 27 → Regular 27, Metade 13, Quinto 5 (pág. 50)', R.calcularMetadeQuinto(27), { regular: 27, metade: 13, quinto: 5 });
+      afirmarIgual('Harvey Walters Nível de Crédito 41 → Regular 41, Metade 20, Quinto 8 (pág. 50)', R.calcularMetadeQuinto(41), { regular: 41, metade: 20, quinto: 8 });
+      afirmarIgual('Perícia 1% (Arredondamento para baixo) → 1 / 0 / 0 (pág. 49)', R.calcularMetadeQuinto(1), { regular: 1, metade: 0, quinto: 0 });
+      afirmarIgual('Perícia 99% → 99 / 49 / 19 (pág. 49)', R.calcularMetadeQuinto(99), { regular: 99, metade: 49, quinto: 19 });
+
+      // 2. Atributos Derivados: PV, Sanidade, PM, Esquiva (págs. 31-35 e 38)
+      iniciarGrupo('2. Atributos Derivados (PV, Sanidade, Pontos de Magia e Esquiva Base) — págs. 31–35 e 38');
+      afirmarIgual('Harvey Walters PV Máximo: (CON 70 + TAM 80) / 10 = 15 (pág. 38)', R.calcularPVMax(70, 80), 15);
+      afirmarIgual('PV Máximo com arredondamento para baixo: (CON 55 + TAM 50) / 10 = 10', R.calcularPVMax(55, 50), 10);
+      afirmarIgual('Harvey Walters Sanidade: POD 45, Mythos 0 → Inicial 45, Máxima 99 (pág. 38)', R.calcularSanidade(45, 0), { inicial: 45, maxima: 99 });
+      afirmarIgual('Sanidade limitada por Mythos de Cthulhu (POD 85, Mythos 20 → Máx 79)', R.calcularSanidade(85, 20), { inicial: 79, maxima: 79 });
+      afirmarIgual('Harvey Walters Pontos de Magia: POD 45 / 5 = 9 PM (pág. 38)', R.calcularPontosMagiaMax(45), 9);
+      afirmarIgual('Harvey Walters Esquiva Base: DES 55 / 2 = 27% (pág. 50)', R.calcularEsquivaBase(55), 27);
+
+      // 3. Tabela 1: Dano Extra e Corpo (pág. 33 e 38)
+      iniciarGrupo('3. Tabela 1: Dano Extra (DX) e Corpo (FOR + TAM) — págs. 33 e 38');
+      afirmarIgual('FOR + TAM = 60 (2–64) → DX -2, Corpo -2', R.calcularDanoExtraECorpo(25, 35), { soma: 60, danoExtra: '-2', corpo: -2 });
+      afirmarIgual('FOR + TAM = 75 (65–84) → DX -1, Corpo -1', R.calcularDanoExtraECorpo(35, 40), { soma: 75, danoExtra: '-1', corpo: -1 });
+      afirmarIgual('Harvey Walters FOR 20 + TAM 80 = 100 (85–124) → DX Nenhum, Corpo 0 (pág. 38)', R.calcularDanoExtraECorpo(20, 80), { soma: 100, danoExtra: 'Nenhum', corpo: 0 });
+      afirmarIgual('FOR + TAM = 140 (125–164) → DX +1D4, Corpo 1', R.calcularDanoExtraECorpo(70, 70), { soma: 140, danoExtra: '+1D4', corpo: 1 });
+      afirmarIgual('FOR + TAM = 180 (165–204) → DX +1D6, Corpo 2', R.calcularDanoExtraECorpo(90, 90), { soma: 180, danoExtra: '+1D6', corpo: 2 });
+      afirmarIgual('FOR + TAM = 250 (205–284) → DX +2D6, Corpo 3', R.calcularDanoExtraECorpo(125, 125), { soma: 250, danoExtra: '+2D6', corpo: 3 });
+      afirmarIgual('FOR + TAM = 524 (445–524) → DX +5D6, Corpo 6', R.calcularDanoExtraECorpo(260, 264), { soma: 524, danoExtra: '+5D6', corpo: 6 });
+      afirmarIgual('Progressão acima de 524 (+80 pts): FOR + TAM = 530 → DX +6D6, Corpo 7', R.calcularDanoExtraECorpo(265, 265), { soma: 530, danoExtra: '+6D6', corpo: 7 });
+
+      // 4. Modificadores de Idade, Melhoria de EDU e MOV (págs. 32-34 e 38)
+      iniciarGrupo('4. Modificadores de Idade, Melhoria de EDU e Taxa de Movimento (MOV) — págs. 32–34 e 38');
+      afirmarIgual('Faixa 15–19 anos (Jovem): -5 EDU, -5 Físico (FOR/TAM), Sorte Dupla', R.obterRegraIdade(17).sorteDupla, true);
+      afirmarIgual('Faixa 40–49 anos (Harvey Walters, 42 anos): 2 melhorias EDU, -5 físico, -5 APA, -1 MOV', R.obterRegraIdade(42).melhoriasEDU, 2);
+      afirmarIgual('Harvey Walters 1ª Melhoria EDU (pág. 38): EDU 80, d100=86 (>80), d10=4 → EDU 84', R.resolverMelhoriaEDU(80, 86, 4), {
+        eduAnterior: 80, rolagemD100: 86, melhorou: true, ganho: 4, eduNova: 84
+      });
+      afirmarIgual('Harvey Walters 2ª Melhoria EDU (pág. 38): EDU 84, d100=82 (≤84), d10=5 → EDU 84', R.resolverMelhoriaEDU(84, 82, 5), {
+        eduAnterior: 84, rolagemD100: 82, melhorou: false, ganho: 0, eduNova: 84
+      });
+      afirmarIgual('Melhoria EDU respeita limite humano máximo de 99%', R.resolverMelhoriaEDU(95, 99, 8).eduNova, 99);
+      afirmarIgual('Harvey Walters MOV (pág. 38): FOR 20 < TAM 80 e DES 55 < TAM 80 (base 7) -1 (42 anos) = 6', R.calcularMOV(20, 55, 80, 42), {
+        movBase: 7, penalidadeIdade: 1, movFinal: 6
+      });
+      afirmarIgual('MOV Base 9: FOR 75 > TAM 60 e DES 70 > TAM 60 (25 anos) → MOV 9', R.calcularMOV(75, 70, 60, 25), {
+        movBase: 9, penalidadeIdade: 0, movFinal: 9
+      });
+      afirmarIgual('MOV Base 8 com penalidade de 65 anos (-3): MOV Final = 5', R.calcularMOV(60, 60, 60, 65), {
+        movBase: 8, penalidadeIdade: 3, movFinal: 5
+      });
+
+      // 5. Pontos Ocupacionais e Interesses Pessoais (págs. 36, 38 e 40-41)
+      iniciarGrupo('5. Fórmulas de Pontos de Ocupação e Interesses Pessoais — págs. 36, 38 e 40–41');
+      const ocupJornalista = window.CoC7e.OCUPACOES.find((o) => o.id === 'jornalista');
+      const ocupAtleta = window.CoC7e.OCUPACOES.find((o) => o.id === 'atleta');
+      const atrHarvey = { FOR: 20, CON: 70, TAM: 80, DES: 55, APA: 80, INT: 85, POD: 45, EDU: 84 };
+      afirmarIgual('Harvey Walters (Jornalista, EDU 84 × 4) = 336 Pontos Ocupacionais (pág. 38)', R.calcularPontosOcupacao(ocupJornalista, atrHarvey).total, 336);
+      afirmarIgual('Harvey Walters (INT 85 × 2) = 170 Pontos de Interesse Pessoal (pág. 38)', R.calcularPontosInteresse(85), 170);
+      afirmarIgual('Atleta (EDU × 2 + maior entre DES × 2 ou FOR × 2) com EDU 60, DES 70, FOR 50 → 120 + 140 = 260', R.calcularPontosOcupacao(ocupAtleta, { EDU: 60, DES: 70, FOR: 50 }).total, 260);
+
+      // 6. Finanças da Década de 1920 (Tabela II, págs. 46-47 e 51)
+      iniciarGrupo('6. Dinheiro, Patrimônio e Nível de Gastos (Década de 1920) — págs. 46–47 e 51');
+      const finHarvey = R.calcularFinancas1920(41);
+      afirmarIgual('Harvey Walters (NC 41% — pág. 51): Padrão de Vida = Médio', finHarvey.padraoVida, 'Médio');
+      afirmarIgual('Harvey Walters (NC 41% — pág. 51): Nível de Gastos = $10', finHarvey.nivelGastos, 10);
+      afirmarIgual('Harvey Walters (NC 41% — pág. 51): Dinheiro = $82 (41 × 2)', finHarvey.dinheiro, 82);
+      afirmarIgual('Harvey Walters (NC 41% — pág. 51): Patrimônio = $2.050 (41 × 50)', finHarvey.patrimonio, 2050);
+      afirmarIgual('Pobretão (NC 0%): Gastos $0,50, Dinheiro $0,50, Patrimônio $0', R.calcularFinancas1920(0).patrimonio, 0);
+      afirmarIgual('Ricaço (NC 99%): Gastos $5.000, Dinheiro $50.000, Patrimônio $5.000.000+', R.calcularFinancas1920(99).patrimonioTexto, '$5.000.000+');
+
+      // 7. Avaliação de Níveis de Sucesso e Desastre no 1d100 (págs. 89-91)
+      iniciarGrupo('7. Níveis de Sucesso e Limiar de Desastre no 1d100 — págs. 89–91');
+      afirmarIgual('Rolagem 01 é sempre Sucesso Crítico', R.avaliarSucesso(1, 45).codigo, 'critico');
+      afirmarIgual('Perícia 65%: Rolagem 13 (≤ 13) é Sucesso Extremo', R.avaliarSucesso(13, 65).codigo, 'extremo');
+      afirmarIgual('Perícia 65%: Rolagem 32 (≤ 32) é Sucesso Difícil', R.avaliarSucesso(32, 65).codigo, 'dificil');
+      afirmarIgual('Perícia 65%: Rolagem 65 (≤ 65) é Sucesso Regular', R.avaliarSucesso(65, 65).codigo, 'regular');
+      afirmarIgual('Perícia 65% (≥ 50): Rolagem 96 é apenas Fracasso (Desastre somente em 100)', R.avaliarSucesso(96, 65).codigo, 'fracasso');
+      afirmarIgual('Perícia 65% (≥ 50): Rolagem 100 é Desastre', R.avaliarSucesso(100, 65).codigo, 'desastre');
+      afirmarIgual('Perícia 45% (< 50): Rolagem 96 é Desastre (96–100)', R.avaliarSucesso(96, 45).codigo, 'desastre');
+      afirmarIgual('Perícia 60% com Dificuldade Difícil exigida (alvo necessário 30% < 50): 97 é Desastre (pág. 89)', R.avaliarSucesso(97, 60, 'dificil').codigo, 'desastre');
+
+      // 8. Dados de Bônus e Penalidade e Gasto de Sorte (págs. 91 e 99)
+      iniciarGrupo('8. Dados de Bônus/Penalidade (pág. 91) e Gasto de Sorte (pág. 99)');
+      afirmarIgual('Dezena 0 + Unidade 0 equivale a 100 no d100', R.combinarDadosD100(0, [0], 'normal').resultadoFinal, 100);
+      afirmarIgual('+1 Dado de Bônus (unidade 4, dezenas 70 e 20 → 74 e 24): escolhe 24', R.combinarDadosD100(4, [7, 2], 'bonus').resultadoFinal, 24);
+      afirmarIgual('-1 Dado de Penalidade (unidade 4, dezenas 70 e 20 → 74 e 24): escolhe 74', R.combinarDadosD100(4, [7, 2], 'penalidade').resultadoFinal, 74);
+      const sorteOp = R.calcularOpcoesGastoSorte(54, 50, 20);
+      afirmarIgual('Gasto de Sorte: Rolagem 54 em Perícia 50% precisa de 4 pontos para Sucesso Regular', sorteOp.opcoesGasto[0].custo, 4);
+      afirmarIgual('Proibido gastar Sorte em Teste de Sanidade (pág. 99)', R.calcularOpcoesGastoSorte(54, 50, 20, { ehSanidade: true }).permitido, false);
+      afirmarIgual('Proibido gastar Sorte em Teste Forçado (pág. 99)', R.calcularOpcoesGastoSorte(54, 50, 20, { testeForcado: true }).permitido, false);
+
+      // 9. Combate (Lesão Grave), Sanidade (Insanidade) e Fase de Desenvolvimento (págs. 94, 120, 155)
+      iniciarGrupo('9. Combate (Lesão Grave), Sanidade (Insanidade) e Fase de Desenvolvimento — págs. 94, 120 e 155');
+      afirmarIgual('Harvey Walters (15 PV Máx) sofre 8 de dano (≥ metade) → Lesão Grave ativada', R.aplicarDanoCombate(15, 15, 8, false).lesaoGrave, true);
+      afirmarIgual('Harvey Walters chega a 0 PV com Lesão Grave → Estado Morrendo ativado', R.aplicarDanoCombate(5, 15, 8, false).morrendo, true);
+      afirmarIgual('Dano de 16 em 15 PV Máx (> PV Máx) → Morte Instantânea', R.aplicarDanoCombate(15, 15, 16, false).morteInstantanea, true);
+      afirmarIgual('Perda de 5 SAN de uma só vez ativa gatilho de Insanidade Temporária (pág. 155)', R.avaliarPerdaSanidade(45, 5, 0, 45).gatilhoTemporaria, true);
+      afirmarIgual('Perda acumulada de 9 SAN no dia (≥ 1/5 de 45 SAN) ativa Insanidade Indefinida (pág. 155)', R.avaliarPerdaSanidade(40, 4, 5, 45).gatilhoIndefinida, true);
+      afirmarIgual('Desenvolvimento (pág. 94): Perícia 85%, rola 90 (>85) e +6 → Sobe para 91% e ganha bônus +2D6 SAN por cruzar 90%', R.resolverDesenvolvimentoPericia(85, 90, 6), {
+        valorAnterior: 85, rolagemD100: 90, evoluiu: true, ganho: 6, valorNovo: 91, bonusSanidade2D6: true
+      });
+
+      // Renderiza resultados
+      const resumoEl = document.getElementById('resumo-testes');
+      const total = totalPassaram + totalFalharam;
+      resumoEl.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+          <div>
+            <h2 style="margin:0; font-size:1.35rem;">
+              ${totalFalharam === 0 ? '✅ Todos os Testes Passaram com Sucesso!' : '❌ Alguns Testes Falharam'}
+            </h2>
+            <p style="margin:0.25rem 0 0; color:var(--text-muted);">
+              Foram executadas <strong>${total}</strong> asserções matemáticas e de regras da 7ª Edição de Chamado de Cthulhu.
+            </p>
+          </div>
+          <div style="font-family:var(--font-mono); font-size:1.25rem; font-weight:bold;">
+            <span style="color:var(--accent-primary);">${totalPassaram} Passaram</span> •
+            <span style="color:${totalFalharam > 0 ? 'var(--accent-crimson)' : 'var(--text-muted)'};">${totalFalharam} Falharam</span>
+          </div>
+        </div>
+      `;
+
+      const listaEl = document.getElementById('lista-grupos-testes');
+      listaEl.innerHTML = grupos.map((g) => `
+        <section class="sheet-section-box test-group">
+          <h3 class="sheet-section-title">
+            <span>${g.titulo}</span>
+            <span>${g.testes.filter((t) => t.passou).length}/${g.testes.length} OK</span>
+          </h3>
+          <div>
+            ${g.testes.map((t) => `
+              <div class="test-item ${t.passou ? 'pass' : 'fail'}">
+                <div>
+                  <strong>${t.passou ? '✓' : '✗'} ${t.descricao}</strong>
+                  <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);">${t.detalhe}</div>
+                </div>
+                <span class="test-badge ${t.passou ? 'pass' : 'fail'}">${t.passou ? 'PASSOU' : 'FALHOU'}</span>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      `).join('');
+    })();
+  </script>
+</body>
+</html>

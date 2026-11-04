@@ -1,6 +1,6 @@
 # Progresso do Projeto — Criador e Gerenciador de Fichas: Chamado de Cthulhu 7ª Edição (Anos 1920 / PT-BR)
 
-## 1. O que já foi feito
+## 1. O que já foi feito (100% Concluído)
 1. **Extração e Leitura Integral das Regras do Livro Básico (`chamado-de-cthulhu---livro-basico-7-edicao.pdf`)**:
    - Extraídos e inspecionados os Capítulos 3 (Criação de Investigadores, Idade, Atributos Derivados, Ocupações, Finanças 1920), 4 (Lista Completa de Perícias e Especializações), 5 (Sistema de Regras, Níveis de Sucesso, Desastre, Dados de Bônus/Penalidade, Gasto de Sorte, Fase de Desenvolvimento), 8 (Sanidade) e Apêndices (Equipamentos 1920, Tabela XVII de Armas e Ficha Oficial dos Anos 1920 das págs. 50–51).
 2. **Camada de Dados (`data/`)**:
@@ -14,6 +14,10 @@
    - Suporte às duas abordagens: (a) inspeção e preenchimento de campos AcroForm da ficha PDF editável oficial via `pdf-lib` + geração direta de PDF de 2 páginas via `pdf-lib`; (b) folha de estilo `@media print` dedicada.
 5. **Estilização Completa (`style.css`)**:
    - Tema Investigador Anos 1920 (papel envelhecido, molduras Art Déco, tipografia serifada e máquina de escrever, tons sépia e verde-escuro lovecraftiano) com **Modo Claro e Modo Escuro**, responsividade mobile, foco visível para acessibilidade e layout `@media print` de 2 páginas.
+6. **Aplicação, Interface e Testes Automatizados (`app.js`, `index.html`, `testes.html`)**:
+   - `app.js`: Estado da aplicação, persistência em `localStorage` (múltiplos investigadores), investigador oficial de exemplo do livro (**Harvey Walters**, págs. 38 e 50–51), exportação/importação JSON, os 9 passos do Assistente de Criação (Wizard) com validação e rolagem/digitação em cada etapa, e a Ficha Viva de 2 páginas com rolador 1d100 (Bônus/Penalidade, Forçar Teste, Gasto de Sorte, Testes de Sanidade, Controle de PV/Lesão Grave/Insanidade e Fase de Desenvolvimento).
+   - `index.html`: Estrutura HTML semântica e acessível em português do Brasil integrando `data/*.js`, `regras.js`, `pdf-export.js`, `app.js` e `style.css` (e CDN opcional do `pdf-lib`).
+   - `testes.html`: Suíte de testes automatizados com 59 asserções validando todas as funções puras de `regras.js` com os exemplos calculados à mão do livro (incluindo Harvey Walters das págs. 38 e 50–51).
 
 ## 2. Divergências Identificadas e Marcadas com `// CONFERIR NO LIVRO`
 - **`// CONFERIR NO LIVRO (pág. 41)` — Piloto (`data/ocupacoes.js`)**: Na edição brasileira impressa/PDF, o verbete *Piloto* repetiu por erro gráfico as perícias de *Parapsicólogo*. O sistema habilita tanto as perícias reais da 7ª Edição (Pilotar Aeronaves, Navegação, Consertos Elétricos/Mecânicos, Op. Maquinário, Astronomia) quanto as impressas na pág. 41.
@@ -22,8 +26,5 @@
 - **`// CONFERIR NO LIVRO (pág. 48)` — Limite Inicial de Perícia (`data/tabelas.js`)**: O teto de `75%` na criação é apresentado na pág. 48 como Regra Opcional.
 - **`// CONFERIR NO LIVRO (pág. 401)` — Lança de Cavalaria (`data/armas.js`)**: Na tabela da pág. 401 consta dano `1D8+1` sem `+DX`.
 
-## 3. Ponto Exato Onde Paramos e Próximos Passos Imediatos
-Faltam apenas os 3 arquivos finais da camada de interface e testes para concluir 100% da entrega:
-1. **`app.js`**: Estado da aplicação, persistência em `localStorage` (múltiplos investigadores), exportação/importação JSON, os 9 passos do Assistente de Criação (Wizard) com validação e rolagem/digitação em cada etapa, e a Ficha Viva de 2 páginas com rolador 1d100 (Bônus/Penalidade, Forçar Teste, Gasto de Sorte, Testes de Sanidade, Controle de PV/Lesão Grave/Insanidade e Fase de Desenvolvimento).
-2. **`index.html`**: Estrutura HTML semântica e acessível em português do Brasil integrando `data/*.js`, `regras.js`, `pdf-export.js`, `app.js` e `style.css` (e CDN opcional do `pdf-lib`).
-3. **`testes.html`**: Suíte de testes automatizados validando todas as funções puras de `regras.js` com os exemplos calculados à mão do livro (incluindo Harvey Walters das págs. 38 e 50–51).
+## 3. Status Final
+Todos os arquivos da arquitetura estão implementados, integrados e verificados com 59 testes automatizados passando.
