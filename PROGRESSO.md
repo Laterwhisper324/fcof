@@ -89,8 +89,9 @@ Implementadas com sucesso todas as 8 tarefas de refinamento solicitadas pelo usu
    - Trava de rolagem no `body` (`body.modal-open`) e foco gerenciado para acessibilidade.
    - Catálogo pesquisável de armas da década de 1920 + campos customizáveis.
 
-8. **Migração Angular v22**:
-   - Arquitetura moderna: componentes standalone, Signals (`signal`, `computed`, `effect`), fluxo de controle nativo (`@if`, `@for`) e injeção moderna via `inject()`.
+8. **Migração Angular v22 & Hospedagem Vercel**:
+   - Arquitetura moderna: componentes standalone, Signals (`signal`, `computed`, `effect`), fluxo de controle nativo (`@if`, `@for`), `provideZonelessChangeDetection()` nativo e injeção moderna via `inject()`.
    - Build de produção gerado com sucesso sem warnings e sem regressão funcional (`npm run build`).
    - Estética editorial 100% preservada (aprovada no `taste-skill` com 0 FAIL).
+   - Suporte oficial de deploy configurado via `vercel.json` com reescrita SPA para `/index.html`, cache imutável para assets estáticos e cabeçalhos de segurança HTTP.
 
