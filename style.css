@@ -1,0 +1,1010 @@
+/**
+ * Chamado de Cthulhu 7ª Edição (Edição Brasileira - Década de 1920)
+ * Arquivo: style.css
+ *
+ * Identidade visual original inspirada em documentos de investigação da década de 1920
+ * (papel envelhecido, ornamentos Art Déco, tipografia serifada e máquina de escrever,
+ * tons sépia e verde-escuro lovecraftiano), com Modo Claro, Modo Escuro e @media print.
+ */
+
+:root {
+  /* Tema Claro (Papel Envelhecido / Arquivos de Miskatonic 1920s) */
+  --bg-page: #ece3cf;
+  --bg-paper: #f7f1e3;
+  --bg-card: #fcf8ef;
+  --bg-elevated: #efe6d2;
+  --bg-input: #fffdf8;
+  --text-main: #221d17;
+  --text-muted: #5c5142;
+  --text-faint: #847663;
+  --accent-primary: #1b4332;
+  --accent-primary-hover: #122e22;
+  --accent-gold: #8c6527;
+  --accent-crimson: #7f1d1d;
+  --accent-eldritch: #264653;
+  --border-color: #c2b295;
+  --border-strong: #7b6a4e;
+  --shadow-soft: 0 4px 16px rgba(34, 29, 23, 0.1);
+  --shadow-modal: 0 12px 36px rgba(15, 12, 9, 0.35);
+
+  /* Cores de Nível de Sucesso */
+  --critico-bg: #fef3c7;
+  --critico-text: #92400e;
+  --critico-border: #d97706;
+  --extremo-bg: #d1fae5;
+  --extremo-text: #065f46;
+  --dificil-bg: #dbeafe;
+  --dificil-text: #1e40af;
+  --regular-bg: #e0f2fe;
+  --regular-text: #0369a1;
+  --fracasso-bg: #f3f4f6;
+  --fracasso-text: #4b5563;
+  --desastre-bg: #fee2e2;
+  --desastre-text: #991b1b;
+
+  --font-serif: 'Georgia', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
+  --font-mono: 'Courier New', 'Liberation Mono', monospace;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-theme="dark"] {
+  /* Tema Escuro (Gabinete Noturno / Biblioteca Arcana) */
+  --bg-page: #0f1412;
+  --bg-paper: #161f1c;
+  --bg-card: #1d2824;
+  --bg-elevated: #24332d;
+  --bg-input: #121916;
+  --text-main: #e9e2d0;
+  --text-muted: #b5ab96;
+  --text-faint: #7d7565;
+  --accent-primary: #40916c;
+  --accent-primary-hover: #52b788;
+  --accent-gold: #d4a359;
+  --accent-crimson: #e05252;
+  --accent-eldritch: #569bad;
+  --border-color: #32443c;
+  --border-strong: #6b5e46;
+  --shadow-soft: 0 4px 18px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 16px 44px rgba(0, 0, 0, 0.75);
+
+  --critico-bg: #452707;
+  --critico-text: #fde68a;
+  --critico-border: #f59e0b;
+  --extremo-bg: #083828;
+  --extremo-text: #a7f3d0;
+  --dificil-bg: #172b4d;
+  --dificil-text: #bfdbfe;
+  --regular-bg: #123347;
+  --regular-text: #bae6fd;
+  --fracasso-bg: #27272a;
+  --fracasso-text: #d4d4d8;
+  --desastre-bg: #451212;
+  --desastre-text: #fecaca;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-page);
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(140, 101, 39, 0.06) 0%, transparent 55%),
+    radial-gradient(circle at 80% 80%, rgba(27, 67, 50, 0.07) 0%, transparent 55%);
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Acessibilidade: foco visível para navegação via teclado */
+:focus-visible {
+  outline: 3px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+/* Cabeçalho Superior */
+.app-header {
+  background: var(--bg-paper);
+  border-bottom: 3px double var(--border-strong);
+  padding: 0.75rem 1.25rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: var(--shadow-soft);
+}
+
+.header-inner {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-seal {
+  width: 42px;
+  height: 42px;
+  border: 2px solid var(--accent-gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.25rem;
+  background: var(--bg-elevated);
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+.brand-subtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Botões Padrão */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--border-color);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: #fffdf8;
+  border-color: var(--accent-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+}
+
+.btn-gold {
+  background: var(--accent-gold);
+  color: #fffdf8;
+  border-color: var(--accent-gold);
+}
+
+.btn-danger {
+  background: var(--accent-crimson);
+  color: #fff;
+  border-color: var(--accent-crimson);
+}
+
+.btn-sm {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+/* Container Principal */
+.app-main {
+  max-width: 1360px;
+  margin: 1.25rem auto 3rem;
+  padding: 0 1rem;
+}
+
+/* Moldura Art Déco 1920s */
+.deco-frame {
+  background: var(--bg-paper);
+  border: 2px solid var(--border-strong);
+  box-shadow: var(--shadow-soft);
+  padding: 1.25rem;
+  position: relative;
+  border-radius: 3px;
+}
+
+.deco-frame::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+}
+
+/* Barra de Progresso do Assistente (Wizard) */
+.wizard-progress {
+  margin-bottom: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem;
+  border-radius: 4px;
+}
+
+.wizard-steps-list {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wizard-step-btn {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  padding: 0.45rem 0.3rem;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.76rem;
+  transition: all 0.15s ease;
+}
+
+.wizard-step-btn .step-num {
+  display: block;
+  font-weight: bold;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--accent-gold);
+}
+
+.wizard-step-btn.active {
+  background: var(--accent-primary);
+  color: #fffdf8;
+  border-color: var(--accent-primary);
+}
+
+.wizard-step-btn.active .step-num {
+  color: #fde68a;
+}
+
+.wizard-step-btn.completed {
+  border-color: var(--accent-primary);
+  color: var(--text-main);
+}
+
+.wizard-progress-bar-track {
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 99px;
+  margin-top: 0.6rem;
+  overflow: hidden;
+}
+
+.wizard-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-gold));
+  transition: width 0.25s ease;
+}
+
+/* Cabeçalho da Etapa */
+.step-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.15rem;
+}
+
+.step-title {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--text-main);
+}
+
+.step-desc {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+/* Grid e Formulários */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 0.85rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-label {
+  font-weight: bold;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-input, .form-select, .form-textarea {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+}
+
+.form-textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Cartões de Atributos com Quadradinhos de Metade (½) e Quinto (⅕) */
+.attr-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  padding: 0.8rem;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative;
+}
+
+.attr-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.attr-sigla {
+  font-size: 1.2rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: var(--accent-primary);
+}
+
+.attr-formula-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+}
+
+.attr-main-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.attr-value-input {
+  width: 78px;
+  font-size: 1.35rem;
+  font-weight: bold;
+  text-align: center;
+  font-family: var(--font-mono);
+  padding: 0.35rem;
+  border: 2px solid var(--border-strong);
+  background: var(--bg-input);
+  color: var(--text-main);
+}
+
+/* Os dois quadradinhos clássicos da ficha oficial de CoC 7e (Metade em cima, Quinto embaixo) */
+.coc-fraction-boxes {
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid var(--border-strong);
+  background: var(--bg-elevated);
+  min-width: 58px;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.coc-fraction-box {
+  padding: 0.12rem 0.35rem;
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.3rem;
+}
+
+.coc-fraction-box:first-child {
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.coc-fraction-label {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.coc-fraction-val {
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+/* Alertas e Avisos */
+.alert {
+  padding: 0.65rem 0.9rem;
+  border-radius: 4px;
+  border-left: 4px solid var(--accent-gold);
+  background: var(--bg-elevated);
+  margin-bottom: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.alert-warning {
+  border-left-color: #d97706;
+  background: var(--critico-bg);
+  color: var(--critico-text);
+}
+
+.alert-danger {
+  border-left-color: var(--accent-crimson);
+  background: var(--desastre-bg);
+  color: var(--desastre-text);
+}
+
+.alert-success {
+  border-left-color: var(--accent-primary);
+  background: var(--extremo-bg);
+  color: var(--extremo-text);
+}
+
+/* Contadores Flutuantes de Pontos de Perícia na Etapa 6 */
+.skills-counters-bar {
+  position: sticky;
+  top: 66px;
+  z-index: 30;
+  background: var(--bg-card);
+  border: 2px solid var(--border-strong);
+  padding: 0.65rem 1rem;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.counter-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.counter-pill strong {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+}
+
+.counter-pill.over-budget {
+  border-color: var(--accent-crimson);
+  background: var(--desastre-bg);
+  color: var(--desastre-text);
+}
+
+/* Tabela de Perícias */
+.skills-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+}
+
+.skills-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.skills-table th,
+.skills-table td {
+  padding: 0.42rem 0.55rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.skills-table th {
+  background: var(--bg-elevated);
+  font-weight: bold;
+  border-bottom: 2px solid var(--border-strong);
+  white-space: nowrap;
+}
+
+.skills-table tr.is-occupational {
+  background: rgba(27, 67, 50, 0.07);
+}
+
+[data-theme="dark"] .skills-table tr.is-occupational {
+  background: rgba(64, 145, 108, 0.13);
+}
+
+.skill-num-input {
+  width: 60px;
+  padding: 0.25rem 0.35rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: bold;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-input);
+  color: var(--text-main);
+  border-radius: 3px;
+}
+
+.badge-occ {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.08rem 0.38rem;
+  background: var(--accent-primary);
+  color: #fff;
+  border-radius: 3px;
+  margin-left: 0.35rem;
+  font-family: var(--font-sans);
+}
+
+/* Rodapé de Navegação do Wizard */
+.wizard-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--border-color);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ==========================================================================
+   FICHA VIVA (MODO DE JOGO - PÁGINA 1 E PÁGINA 2)
+   ========================================================================== */
+
+.sheet-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-card);
+  border: 2px solid var(--border-strong);
+  padding: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.sheet-tabs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.sheet-layout {
+  display: grid;
+  grid-template-columns: 1fr 330px;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .sheet-layout {
+    grid-template-columns: 1fr;
+  }
+  .wizard-steps-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Cabeçalho Estilo Ficha Oficial dos Anos 1920 */
+.sheet-top-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.5fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 780px) {
+  .sheet-top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sheet-section-box {
+  background: var(--bg-card);
+  border: 2px solid var(--border-strong);
+  padding: 0.85rem;
+  border-radius: 3px;
+}
+
+.sheet-section-title {
+  margin: -0.85rem -0.85rem 0.75rem -0.85rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--accent-primary);
+  color: #fffdf8;
+  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Atributos Clicáveis na Ficha Viva */
+.live-attrs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+}
+
+@media (max-width: 560px) {
+  .live-attrs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.live-attr-box {
+  background: var(--bg-paper);
+  border: 1.5px solid var(--border-strong);
+  padding: 0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 3px;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+
+.live-attr-box:hover {
+  border-color: var(--accent-gold);
+}
+
+.roll-trigger-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.roll-trigger-btn:hover {
+  color: var(--accent-gold);
+  text-decoration: underline;
+}
+
+/* Controle de Recursos Vitais (PV, SAN, PM, Sorte) */
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.vital-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-strong);
+  padding: 0.75rem;
+  border-radius: 3px;
+}
+
+.vital-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.vital-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.vital-big-number {
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: bold;
+}
+
+.vital-bar {
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.vital-bar-fill {
+  height: 100%;
+  transition: width 0.2s ease;
+}
+
+.vital-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.vital-flag-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  padding: 0.12rem 0.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-paper);
+}
+
+.vital-flag-label.flag-active {
+  background: var(--desastre-bg);
+  color: var(--desastre-text);
+  border-color: var(--accent-crimson);
+  font-weight: bold;
+}
+
+/* Grade de Perícias na Ficha Viva (3 colunas estilo Ficha Oficial) */
+.live-skills-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+
+@media (max-width: 920px) {
+  .live-skills-columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .live-skills-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.live-skill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.28rem 0.45rem;
+  border-bottom: 1px dotted var(--border-color);
+  background: var(--bg-paper);
+  font-size: 0.85rem;
+}
+
+.live-skill-row:hover {
+  background: var(--bg-elevated);
+}
+
+.live-skill-left {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.skill-check-mark {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+}
+
+.live-skill-right {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.live-skill-total-input {
+  width: 44px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: bold;
+  font-size: 0.85rem;
+  padding: 0.1rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-main);
+}
+
+.mini-frac {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  min-width: 44px;
+  text-align: right;
+}
+
+/* Painel Lateral de Rolagens e Log da Sessão */
+.dice-roller-sidebar {
+  position: sticky;
+  top: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.roll-result-banner {
+  padding: 0.85rem;
+  border-radius: 4px;
+  border: 2px solid var(--border-strong);
+  text-align: center;
+  margin-bottom: 0.65rem;
+}
+
+.roll-result-banner.nivel-critico { background: var(--critico-bg); color: var(--critico-text); border-color: var(--critico-border); }
+.roll-result-banner.nivel-extremo { background: var(--extremo-bg); color: var(--extremo-text); }
+.roll-result-banner.nivel-dificil { background: var(--dificil-bg); color: var(--dificil-text); }
+.roll-result-banner.nivel-regular { background: var(--regular-bg); color: var(--regular-text); }
+.roll-result-banner.nivel-fracasso { background: var(--fracasso-bg); color: var(--fracasso-text); }
+.roll-result-banner.nivel-desastre { background: var(--desastre-bg); color: var(--desastre-text); border-color: var(--accent-crimson); }
+
+.roll-d100-number {
+  font-family: var(--font-mono);
+  font-size: 2.3rem;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+.roll-log-list {
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-right: 0.2rem;
+}
+
+.roll-log-item {
+  padding: 0.45rem 0.6rem;
+  background: var(--bg-paper);
+  border-left: 3px solid var(--border-strong);
+  font-size: 0.8rem;
+  border-radius: 2px;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-box {
+  background: var(--bg-paper);
+  border: 2px solid var(--border-strong);
+  box-shadow: var(--shadow-modal);
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.25rem;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   ESTILO DE IMPRESSÃO (@media print) — IMITA A FICHA OFICIAL DE 2 PÁGINAS
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 9pt;
+  }
+
+  .no-print,
+  .app-header,
+  .sheet-toolbar,
+  .dice-roller-sidebar,
+  .wizard-progress,
+  .wizard-footer {
+    display: none !important;
+  }
+
+  .app-main {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sheet-layout {
+    display: block !important;
+  }
+
+  .deco-frame,
+  .sheet-section-box,
+  .vital-card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    break-inside: avoid;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+}
