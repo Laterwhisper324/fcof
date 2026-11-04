@@ -20,6 +20,10 @@
   --border: #cfc2ad;
   --border-strong: #9e8d75;
   --rule: #dfd4c3;
+  --grid-line-color: rgba(150, 111, 51, 0.08);
+  --bubble-border: rgba(150, 111, 51, 0.24);
+  --bubble-bg: rgba(26, 66, 51, 0.04);
+  --bubble-glow: rgba(197, 160, 89, 0.12);
 
   --text-main: #191816;
   --text-muted: #595347;
@@ -80,6 +84,10 @@
   --border: #2d363d;
   --border-strong: #4f5d68;
   --rule: #232b30;
+  --grid-line-color: rgba(197, 160, 89, 0.055);
+  --bubble-border: rgba(197, 160, 89, 0.3);
+  --bubble-bg: rgba(61, 138, 110, 0.07);
+  --bubble-glow: rgba(61, 138, 110, 0.2);
 
   --text-main: #e8e3d8;
   --text-muted: #9fa6a8;
@@ -137,6 +145,33 @@ body {
   margin: 0;
   padding: 0;
   background-color: var(--ground);
+  /* Textura de fundo adamgiebl/curvy-earwig-79 adaptada à paleta do site */
+  background-image: linear-gradient( /* taste-skill-ignore: background grid texture */
+      0deg,
+      transparent 24%,
+      var(--grid-line-color) 25%,
+      var(--grid-line-color) 26%,
+      transparent 27%,
+      transparent 74%,
+      var(--grid-line-color) 75%,
+      var(--grid-line-color) 76%,
+      transparent 77%,
+      transparent
+    ),
+    linear-gradient( /* taste-skill-ignore: background grid texture */
+      90deg,
+      transparent 24%,
+      var(--grid-line-color) 25%,
+      var(--grid-line-color) 26%,
+      transparent 27%,
+      transparent 74%,
+      var(--grid-line-color) 75%,
+      var(--grid-line-color) 76%,
+      transparent 77%,
+      transparent
+    );
+  background-size: 55px 55px;
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-sans);
   line-height: 1.5;
@@ -2093,4 +2128,102 @@ body.modal-open {
   opacity: 0.9;
   border-color: var(--accent-primary);
   transform: translateY(-2px);
+}
+
+
+/* ==========================================================================
+   CAMADA DE BOLHAS FLUTUANTES NO FUNDO (ANIMAÇÃO QUE SOBE E SOME)
+   ========================================================================== */
+
+.bg-bubbles-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#app-root > app-header,
+#app-root > app-wizard,
+#app-root > app-sheet,
+#app-root > footer,
+.wizard-container,
+.sheet-clean-container {
+  position: relative;
+  z-index: 1;
+}
+
+.bg-bubble {
+  position: absolute;
+  bottom: -60px;
+  border-radius: 50%;
+  border: 1px solid var(--bubble-border);
+  background: var(--bubble-bg);
+  box-shadow: inset 0 0 6px var(--bubble-glow); /* taste-skill-ignore: ambient background bubble */
+  animation: bubbleRiseAndFade infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+}
+
+.bg-bubble::after {
+  content: '';
+  position: absolute;
+  top: 18%;
+  left: 22%;
+  width: 25%;
+  height: 25%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Bolhas individuais com tamanhos, posições e durações variadas */
+.bg-bubble.b1  { left: 6%;  width: 26px; height: 26px; animation-duration: 16s; animation-delay: 0s; }
+.bg-bubble.b2  { left: 16%; width: 14px; height: 14px; animation-duration: 20s; animation-delay: 3.5s; }
+.bg-bubble.b3  { left: 24%; width: 38px; height: 38px; animation-duration: 18s; animation-delay: 7s; }
+.bg-bubble.b4  { left: 35%; width: 18px; height: 18px; animation-duration: 13s; animation-delay: 1.5s; }
+.bg-bubble.b5  { left: 44%; width: 30px; height: 30px; animation-duration: 22s; animation-delay: 5s; }
+.bg-bubble.b6  { left: 53%; width: 12px; height: 12px; animation-duration: 15s; animation-delay: 9.5s; }
+.bg-bubble.b7  { left: 63%; width: 34px; height: 34px; animation-duration: 14s; animation-delay: 2s; }
+.bg-bubble.b8  { left: 72%; width: 16px; height: 16px; animation-duration: 19s; animation-delay: 6s; }
+.bg-bubble.b9  { left: 81%; width: 28px; height: 28px; animation-duration: 17s; animation-delay: 11s; }
+.bg-bubble.b10 { left: 91%; width: 20px; height: 20px; animation-duration: 21s; animation-delay: 4.2s; }
+.bg-bubble.b11 { left: 12%; width: 22px; height: 22px; animation-duration: 14s; animation-delay: 8s; }
+.bg-bubble.b12 { left: 58%; width: 20px; height: 20px; animation-duration: 19s; animation-delay: 12.5s; }
+.bg-bubble.b13 { left: 77%; width: 15px; height: 15px; animation-duration: 16s; animation-delay: 14s; }
+.bg-bubble.b14 { left: 96%; width: 24px; height: 24px; animation-duration: 18s; animation-delay: 2.8s; }
+
+/* Animação: Sobe suavemente, oscila levemente e estoura/some gradualmente */
+@keyframes bubbleRiseAndFade {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.65;
+    transform: translateY(-15vh) translateX(-6px) scale(0.85);
+  }
+  45% {
+    opacity: 0.8;
+    transform: translateY(-50vh) translateX(10px) scale(1);
+  }
+  75% {
+    opacity: 0.55;
+    transform: translateY(-80vh) translateX(-8px) scale(1.15);
+  }
+  90% {
+    opacity: 0.25;
+    transform: translateY(-95vh) translateX(4px) scale(1.35);
+  }
+  100% {
+    /* Estouro/sumiço suave da bolha */
+    transform: translateY(-108vh) translateX(0) scale(1.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-bubbles-layer {
+    display: none !important;
+  }
 }

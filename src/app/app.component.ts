@@ -24,6 +24,24 @@ import { DiceDrawerComponent } from './components/dice-drawer/dice-drawer.compon
   ],
   template: `
     <div id="app-root" aria-live="polite">
+      <!-- Camada de Bolhas Flutuantes (Animação de Fundo) -->
+      <div class="bg-bubbles-layer no-print" aria-hidden="true">
+        <div class="bg-bubble b1"></div>
+        <div class="bg-bubble b2"></div>
+        <div class="bg-bubble b3"></div>
+        <div class="bg-bubble b4"></div>
+        <div class="bg-bubble b5"></div>
+        <div class="bg-bubble b6"></div>
+        <div class="bg-bubble b7"></div>
+        <div class="bg-bubble b8"></div>
+        <div class="bg-bubble b9"></div>
+        <div class="bg-bubble b10"></div>
+        <div class="bg-bubble b11"></div>
+        <div class="bg-bubble b12"></div>
+        <div class="bg-bubble b13"></div>
+        <div class="bg-bubble b14"></div>
+      </div>
+
       <!-- Cabeçalho Principal -->
       <app-header></app-header>
 
