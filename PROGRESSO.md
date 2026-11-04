@@ -26,5 +26,21 @@
 - **`// CONFERIR NO LIVRO (pág. 48)` — Limite Inicial de Perícia (`data/tabelas.js`)**: O teto de `75%` na criação é apresentado na pág. 48 como Regra Opcional.
 - **`// CONFERIR NO LIVRO (pág. 401)` — Lança de Cavalaria (`data/armas.js`)**: Na tabela da pág. 401 consta dano `1D8+1` sem `+DX`.
 
-## 3. Status Final
-Todos os arquivos da arquitetura estão implementados, integrados e verificados com 59 testes automatizados passando.
+## 3. Atualização Frontend em Angular (Progressive Disclosure & Redução de Sobrecarga Visual)
+- **Módulo Angular (`coc7eApp` em `app.js` + `vendor/angular.min.js`)**:
+  - **`CocStateService`**: Gerenciamento reativo com `two-way data binding` (`ng-model`), eliminando reconstruções completas do DOM (`innerHTML`) a cada tecla digitada.
+  - **`<coc-header>`**: Cabeçalho enxuto com pílula rápida do investigador ativo, seletor segmentado (`🧭 Assistente` vs `📜 Ficha Viva`) e botão de abertura da gaveta de dados com badge do último resultado.
+  - **`<coc-wizard>`**: Assistente de 9 passos com *Progressive Disclosure*:
+    - Notas extensas de regras do livro recolhidas por padrão (`📖 Ver Regra do Livro`).
+    - **Etapa 3 (Idade & Sorte)** dividida em 3 sub-abas focadas (`1. Educação`, `2. Penalidade Física`, `3. Sorte Inicial`).
+    - **Etapa 4 (Derivados)** oculta campos de override manual a menos que o usuário ative `🔧 Editar Manualmente (Regras da Casa)`.
+    - **Etapa 6 (Perícias)** com chips de categoria (`⭐ Ocupacionais`, `📈 Com Pontos`, `🔍 Investigação`, `⚔️ Combate`, `🗣️ Sociais`, `🔬 Ciências`, `📋 Todas`), iniciando focada nas perícias ocupacionais em vez de exibir 55 linhas de uma só vez.
+    - **Etapa 7 (Antecedentes)** em cartões de acordeão (`lore-card`) divididos entre `★ Essenciais` e `🐙 Mythos`, abrindo apenas o campo em edição.
+    - **Etapa 8 (Finanças, Armas e Equipamentos)** organizada em 3 sub-abas independentes.
+  - **`<coc-live-sheet>`**: Ficha Viva reestruturada para eliminar a exibição simultânea de Página 1 + Página 2 + Barra Lateral:
+    - **HUD Superior Compacto**: Pílulas interativas de `PV`, `SAN`, `PM` e `Sorte` com ajuste rápido (`-`/`+`) e botão `⚡ Dano / Condições` que expande a calculadora de Lesão Grave/Insanidade apenas sob demanda.
+    - **6 Abas de Trabalho Focadas**: `📊 Atributos & Resumo`, `🎯 Perícias` (com visão padrão `⭐ Principais & Ocupacionais`, `🗂️ Por Categoria` e `📋 Lista Completa`), `⚔️ Combate & Armas` (com rolagem de ataque 1D100 e rolagem de dano da arma), `📖 Antecedentes` (em acordeão), `💼 Inventário & Finanças` e `🖨️ Folha Clássica (2P)`.
+  - **`<coc-roll-toast>` & `<coc-dice-drawer>`**: Substituem a antiga coluna lateral fixa de 330px por um Toast flutuante no canto inferior direito (com botões imediatos de *Forçar Rolagem* e *Gastar Sorte*) e uma gaveta lateral deslizante sob demanda.
+
+## 4. Status Final
+Todos os arquivos da arquitetura estão implementados em Angular, funcionando 100% offline/online e verificados com 59 testes automatizados passando.
