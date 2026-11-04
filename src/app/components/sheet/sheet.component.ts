@@ -106,7 +106,10 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     [attr.aria-label]="'Rolar 1D100 de ' + nomesAtributos[sigla] + ' (' + sigla + ' ' + svc.inv().atributosFinais[sigla] + '%)'"
                     [title]="'Clique para rolar 1D100 de ' + nomesAtributos[sigla] + ' (' + sigla + ': ' + svc.inv().atributosFinais[sigla] + '%)'"
                   >
-                    <span class="live-attr-sigla">{{ sigla }}</span>
+                    <div class="live-attr-header">
+                      <span class="live-attr-sigla">{{ sigla }}</span>
+                      <span class="live-attr-nome">{{ nomesAtributos[sigla] }}</span>
+                    </div>
                     <span class="live-attr-valor">{{ svc.inv().atributosFinais[sigla] }}%</span>
                     <div class="live-attr-fractions">
                       <span class="live-attr-frac-badge" title="Sucesso Difícil (metade)">½ {{ svc.mq(svc.inv().atributosFinais[sigla]).metade }}</span>
