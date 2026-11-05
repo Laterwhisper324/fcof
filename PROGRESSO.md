@@ -114,75 +114,26 @@ Implementadas com sucesso todas as 8 tarefas de refinamento solicitadas pelo usu
 
 ---
 
-## 5. Próximas Tarefas de Interface & Layout (Backlog para Envio Futuro)
+## 5. Correções de Interface & Layout: Topbar e Footbar (Concluído)
 
-Este bloco reúne o diagnóstico completo e o roteiro de implementação para as correções visuais de rolagem (scroll) e alinhamento vertical das barras superior (topbar) e inferior (footbar).
+Este bloco reúne a implementação concluída para as correções visuais de rolagem (scroll) e alinhamento vertical das barras superior (topbar) e inferior (footbar).
 
-### Tarefa A: Correção de Sobreposição da Topbar no Scroll (z-index & Stacking Context)
-- **Problema Diagnosticado (conforme imagem do usuário)**:
-  - Ao rolar a página verticalmente para baixo, os botões das etapas do assistente (`.wizard-step-btn`), números, textos e outros elementos da página deslizam visualmente por cima da barra de cabeçalho (`.app-header`), tornando o topo ilegível e quebrando o efeito de barra fixa superior.
-- **Causa Raiz Técnica**:
-  - No arquivo `style.css`, a regra `#app-root > app-header, #app-root > app-wizard, ...` atribui `z-index: 1` para todos os blocos no mesmo nível hierárquico. Como a tag `<app-wizard>` aparece depois de `<app-header>` no DOM de `app.component.ts`, o contexto de empilhamento (*stacking context*) do assistente fica com precedência de pintura sobre a topbar.
-- **Solução / O que Fazer**:
-  1. No `style.css`, isolar `#app-root > app-header` e a classe `.app-header` com prioridade alta de camada:
-     ```css
-     #app-root > app-header,
-     .app-header {
-       position: sticky;
-       top: 0;
-       z-index: 100;
-       background: var(--ground);
-       border-bottom: 1px solid var(--border-strong);
-       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* taste-skill-ignore: header elevation */
-     }
-     ```
-  2. Assegurar que `<app-wizard>`, `<app-sheet>` e seus containers internos permaneçam com `z-index: 1`, garantindo que todo conteúdo que sobe passe estritamente por baixo da topbar.
+### Tarefa A: Correção de Sobreposição da Topbar no Scroll (z-index & Stacking Context) — ✅ Concluído
+- **Problema Resolvido**:
+  - Ao rolar a página verticalmente para baixo, os botões das etapas do assistente (`.wizard-step-btn`), números, textos e outros elementos da página não deslizam mais por cima da barra de cabeçalho (`.app-header`).
+- **Implementação Realizada**:
+  1. No `style.css`, `#app-root > app-header` e a classe `.app-header` foram configurados com prioridade alta de camada (`position: sticky; top: 0; z-index: 100; background: var(--ground); border-bottom: 1px solid var(--border-strong); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);`).
+  2. Garantiu-se que `<app-wizard>`, `<app-sheet>` e seus containers internos permaneçam com `z-index: 1`, passando estritamente por baixo da topbar.
 
 ---
 
-### Tarefa B: Correção da Footbar (Sticky Footer sem Vão Vazio na Parte Inferior)
-- **Problema Diagnosticado**:
-  - A barra de rodapé (`.app-footer`) acompanha imediatamente o último elemento da página. Em telas altas ou etapas com pouco conteúdo (ex.: etapas de texto curto ou poucos campos), o rodapé sobe e deixa um vão/espaço vazio em branco/fundo sob ele, em vez de se manter fixado na base da janela.
-- **Causa Raiz Técnica**:
-  - O elemento pai `#app-root` não está configurado com `min-height: 100vh` e modelo de caixa flexível em coluna (`display: flex; flex-direction: column;`). Sem isso, o conteúdo principal não se expande para empurrar o rodapé até o limite inferior da viewport.
-- **Solução / O que Fazer**:
-  1. Configurar `#app-root` no `style.css` como container flex de altura total:
-     ```css
-     #app-root {
-       min-height: 100vh;
-       display: flex;
-       flex-direction: column;
-     }
-     ```
-  2. Fazer com que o bloco principal de visualização expanda o espaço livre:
-     ```css
-     #app-root > app-wizard,
-     #app-root > app-sheet {
-       flex: 1 0 auto;
-       display: flex;
-       flex-direction: column;
-     }
-
-     .wizard-container,
-     .sheet-clean-container {
-       flex: 1 0 auto;
-     }
-     ```
-  3. No rodapé `.app-footer`, assegurar ancoragem na base:
-     ```css
-     .app-footer {
-       margin-top: auto;
-       width: 100%;
-       position: relative;
-       z-index: 10;
-     }
-     ```
-     Isso garante que o rodapé permaneça sempre colado no final da tela sem deixar vãos inferiores, rolando normalmente quando o conteúdo for longo.
-
----
-
-### Prompt Sugerido para Envio Futuro:
-> *"Corrija agora os problemas de rolagem da topbar e da footbar conforme documentado na Seção 5 do PROGRESSO.md: eleve o z-index e isole o contexto de empilhamento da .app-header para que nenhum botão passe por cima ao scrollar, e configure o layout do #app-root como flex column com min-height: 100vh e flex: 1 no conteúdo para que a .app-footer fique sempre ancorada na base sem deixar vão embaixo."*
+### Tarefa B: Correção da Footbar (Sticky Footer sem Vão Vazio na Parte Inferior) — ✅ Concluído
+- **Problema Resolvido**:
+  - A barra de rodapé (`.app-footer`) agora permanece sempre ancorada na base da viewport em telas grandes ou etapas com pouco conteúdo, eliminando o vão vazio em branco/fundo sob ela.
+- **Implementação Realizada**:
+  1. Configurado `#app-root` no `style.css` como flex container vertical de altura total (`min-height: 100vh; display: flex; flex-direction: column;`).
+  2. Blocos principais `#app-root > app-wizard` e `#app-root > app-sheet` configurados com `flex: 1 0 auto; display: flex; flex-direction: column;` e seus containers (`.wizard-container`, `.sheet-clean-container`) com `flex: 1 0 auto; width: 100%;`.
+  3. No rodapé `.app-footer`, configurado `margin-top: auto; width: 100%; position: relative; z-index: 10;`.
 
 ---
 
