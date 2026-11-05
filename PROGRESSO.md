@@ -111,6 +111,21 @@ Implementadas com sucesso todas as 8 tarefas de refinamento solicitadas pelo usu
        - Confirmação de conclusão: Marca de verificação dinâmica (`check`).
    - 0 emojis remanescentes em todo o código-fonte da aplicação Angular.
 
+10. **Refatoração Completa do Sistema de Inventário do Arsenal (Drag & Drop, Imutabilidade Zoneless e Persistência)**:
+    - **Correção da Reatividade Zoneless no Estado (`coc-state.service.ts`)**:
+      - `atualizarInvestigadorAtivo` agora realiza clonagem profunda (`JSON.parse(JSON.stringify(list[idx]))`) antes de mutar, garantindo que o signal `inv()` emita uma nova referência de objeto e todos os computeds dependentes (`itensCorpo`, `itensMochila`, etc.) atualizem a view instantaneamente.
+      - Métodos dedicados adicionados: `salvarArma`, `removerArma`, `moverArma` e `atualizarImagemArma`.
+    - **Arrastar e Soltar com o Mouse (Drag and Drop Nativo HTML5)**:
+      - Cards de armas/equipamentos agora são arrastáveis (`draggable="true"`) com feedback visual de arrasto (`.is-dragging`).
+      - Zonas do **Corpo** e da **Mochila** atuam como drop targets dinâmicos (`.drag-target-active`), com destaque de borda e cor.
+      - Respeito automático aos limites da 7ª Edição (máximo 3 itens no Corpo e 6 na Mochila) com mensagem de aviso contextual.
+    - **Botão Direto de Transferência Rápida**:
+      - Adicionado botão com ícone vetorial de transferência em cada card para mover de Corpo para Mochila (e vice-versa) com apenas 1 clique, além do arrasto com mouse.
+    - **Troca e Upload de Imagens Confiável**:
+      - Leitura assíncrona com `FileReader` integrada com `ChangeDetectorRef.markForCheck()` no modal de edição.
+      - Possibilidade de troca direta de foto pelo overlay do card no próprio inventário ou via modal de edição.
+    - **Exclusão Imediata pelo Ícone de Lixeira**:
+      - Botão com ícone da lixeira executa a remoção imediata do item sem propagação indevida de eventos e com salvamento automático persistido.
 
 ---
 

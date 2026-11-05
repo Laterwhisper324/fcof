@@ -6,7 +6,8 @@ import {
   inject,
   signal,
   computed,
-  effect
+  effect,
+  ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -260,6 +261,7 @@ import { UiIconComponent } from '../ui-icon/ui-icon.component';
 })
 export class ArmaModalComponent {
   private readonly svc = inject(CocStateService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild('buscaInput') buscaInputElement?: ElementRef<HTMLInputElement>;
 
@@ -340,6 +342,7 @@ export class ArmaModalComponent {
       const reader = new FileReader();
       reader.onload = (e) => {
         this.formImagemUrl = String(e.target?.result || '');
+        this.cdr.markForCheck();
       };
       reader.readAsDataURL(file);
     }
@@ -347,6 +350,7 @@ export class ArmaModalComponent {
 
   public selecionarPreset(preset: ItemIconPreset): void {
     this.formImagemUrl = preset.svgDataUri;
+    this.cdr.markForCheck();
   }
 
   public selecionarDoCatalogo(arma: any): void {
@@ -366,6 +370,7 @@ export class ArmaModalComponent {
     if (!this.formImagemUrl || this.formImagemUrl.startsWith('data:image/svg+xml')) {
       this.formImagemUrl = obterIconePadrao(arma.nome);
     }
+    this.cdr.markForCheck();
   }
 
   private carregarOuResetarFormulario(): void {
@@ -406,6 +411,7 @@ export class ArmaModalComponent {
         this.formImagemUrl = ITEM_ICON_PRESETS[0].svgDataUri;
       }
     }
+    this.cdr.markForCheck();
   }
 
   public confirmarSalvar(): void {
@@ -431,17 +437,7 @@ export class ArmaModalComponent {
       observacoes: this.formObservacoes.trim()
     };
 
-    this.svc.atualizarInvestigadorAtivo((inv) => {
-      const lista = inv.armas || [];
-      const idx = lista.findIndex((a) => a.id === id);
-      if (idx >= 0) {
-        lista[idx] = itemSalvo;
-      } else {
-        lista.push(itemSalvo);
-      }
-      inv.armas = [...lista];
-    });
-
+    this.svc.salvarArma(itemSalvo);
     this.fechar();
   }
 }

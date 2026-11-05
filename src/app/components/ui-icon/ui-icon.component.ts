@@ -14,7 +14,9 @@ export type UiIconName =
   | 'star'
   | 'check'
   | 'chevron-down'
-  | 'chevron-up';
+  | 'chevron-up'
+  | 'transfer'
+  | 'backpack';
 
 @Component({
   selector: 'app-ui-icon',
@@ -128,6 +130,26 @@ export type UiIconName =
       @if (name === 'chevron-up') {
         <svg class="ui-svg anim-chevron-up" viewBox="0 0 24 24" [attr.width]="size" [attr.height]="size" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="18 15 12 9 6 15" />
+        </svg>
+      }
+
+      <!-- ÍCONE: TRANSFERIR / MOVER -->
+      @if (name === 'transfer') {
+        <svg class="ui-svg anim-transfer" viewBox="0 0 24 24" [attr.width]="size" [attr.height]="size" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17 1 21 5 17 9" />
+          <path d="M3 5h18" />
+          <polyline points="7 23 3 19 7 15" />
+          <path d="M21 19H3" />
+        </svg>
+      }
+
+      <!-- ÍCONE: MOCHILA / SACOLA VINTAGE -->
+      @if (name === 'backpack') {
+        <svg class="ui-svg anim-backpack" viewBox="0 0 24 24" [attr.width]="size" [attr.height]="size" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9z" />
+          <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+          <path d="M4 12h16" />
+          <path d="M10 12v3a2 2 0 0 0 4 0v-3" />
         </svg>
       }
     </span>

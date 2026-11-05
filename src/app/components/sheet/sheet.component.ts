@@ -242,30 +242,53 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
         </div>
       }
 
-      <!-- ==================== ABA 3: COMBATE & ARMAS (TAREFA 7 - MODAL CENTRALIZADO) ==================== -->
+      <!-- ==================== ABA 3: COMBATE & ARMAS ==================== -->
       @if (svc.abaFicha() === 'combate') {
         <div class="deco-frame sheet-tab-content" style="margin-bottom:1.5rem;">
-          <!-- Barra de Título do Arsenal (Tag ARSENAL + Botão + ITEM) -->
+          <!-- Barra de Título do Arsenal (Tag ARSENAL + Instrução de Arrasto + Botão + ITEM) -->
           <div class="arsenal-header">
-            <div class="arsenal-badge-tag">
-              ARSENAL
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+              <div class="arsenal-badge-tag">
+                ARSENAL
+              </div>
+              <span style="font-size:0.78rem; color:var(--text-muted);">
+                Arraste os itens com o mouse entre <strong>Corpo</strong> e <strong>Mochila</strong> ou use o botão de transferência
+              </span>
             </div>
             <button type="button" class="btn btn-primary btn-sm" (click)="abrirModalNovoItem('corpo')">
               + ITEM
             </button>
           </div>
 
-          <!-- Seção 1: CORPO (3/3) -->
+          @if (mensagemAvisoArsenal()) {
+            <div class="alert alert-warning" style="margin-bottom:0.85rem; font-size:0.85rem; padding:0.5rem 0.8rem;">
+              {{ mensagemAvisoArsenal() }}
+            </div>
+          }
+
+          <!-- Seção 1: CORPO (X/3) -->
           <div class="arsenal-category-header">
             <span class="arsenal-category-bar"></span>
-            <span>CORPO ({{ itensCorpo().length }}/3)</span>
+            <span>CORPO ({{ itensCorpo().length }}/3) — Equipado &amp; Em Mãos</span>
           </div>
 
-          <div class="arsenal-grid">
+          <div
+            class="arsenal-grid"
+            [class.drag-target-active]="zonaArrastoAtiva() === 'corpo'"
+            (dragover)="onDragOver($event, 'corpo')"
+            (dragleave)="onDragLeave($event, 'corpo')"
+            (drop)="onDrop($event, 'corpo')"
+          >
             @for (item of itensCorpo(); track item.id) {
-              <div class="arsenal-card">
+              <div
+                class="arsenal-card"
+                [class.is-dragging]="itemArrastando()?.id === item.id"
+                draggable="true"
+                (dragstart)="onDragStart($event, item)"
+                (dragend)="onDragEnd()"
+              >
                 <!-- Imagem do item / arma -->
-                <div class="arsenal-img-container" (click)="trocarImagemItem(item)" title="Clique para trocar imagem">
+                <div class="arsenal-img-container" (click)="trocarImagemItem(item)" title="Clique para editar ou trocar imagem">
                   @if (item.imagemUrl) {
                     <img [src]="item.imagemUrl" [alt]="item.nome" loading="lazy" />
                   } @else {
@@ -274,9 +297,13 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                       <span>+ Imagem</span>
                     </div>
                   }
-                  <div class="arsenal-img-overlay">
-                    <span style="display:inline-flex; align-items:center; gap:0.3rem;"><app-ui-icon name="camera" [size]="14"></app-ui-icon> Trocar Imagem</span>
-                  </div>
+                  <label class="arsenal-img-overlay" (click)="$event.stopPropagation()" title="Clique para escolher foto do computador">
+                    <span style="display:inline-flex; align-items:center; gap:0.3rem; cursor:pointer;">
+                      <app-ui-icon name="camera" [size]="14"></app-ui-icon>
+                      <span>Trocar Foto</span>
+                    </span>
+                    <input type="file" accept="image/*" style="display:none;" (change)="onCardImageUpload($event, item)" />
+                  </label>
                 </div>
 
                 <!-- Informações em baixo -->
@@ -291,7 +318,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   </div>
                 </div>
 
-                <!-- Ações do Card (Dado/Ação, Editar, Excluir) -->
+                <!-- Ações do Card (Dado/Ação, Transferir, Editar, Excluir) -->
                 <div class="arsenal-card-footer">
                   <button
                     type="button"
@@ -300,6 +327,14 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     [title]="item.tipoItem !== 'geral' && item.danoBase && item.danoBase !== '-' ? 'Rolar Dano (' + item.danoBase + ')' : 'Inspecionar Item'"
                   >
                     <app-d20-icon [size]="15"></app-d20-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="arsenal-action-btn btn-transfer"
+                    (click)="moverItem(item.id, 'mochila')"
+                    title="Mover para a Mochila (ou arraste com o mouse)"
+                  >
+                    <app-ui-icon name="transfer" [size]="14"></app-ui-icon>
                   </button>
                   <button
                     type="button"
@@ -312,7 +347,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   <button
                     type="button"
                     class="arsenal-action-btn btn-delete"
-                    (click)="removerArma(item.id)"
+                    (click)="removerArma(item.id, $event)"
                     title="Remover item do inventário"
                   >
                     <app-ui-icon name="trash" [size]="14"></app-ui-icon>
@@ -320,23 +355,40 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                 </div>
               </div>
             } @empty {
-              <div class="arsenal-empty-slot" (click)="abrirModalNovoItem('corpo')" style="grid-column: 1 / -1; height: 120px;" title="Clique para equipar um item no corpo">
+              <div
+                class="arsenal-empty-slot"
+                (click)="abrirModalNovoItem('corpo')"
+                style="grid-column: 1 / -1; height: 120px;"
+                title="Clique para equipar um item ou arraste um item da mochila para cá"
+              >
                 <span style="font-size:1.2rem; color:var(--text-faint);">+</span>
-                <span style="font-size:0.8rem; color:var(--text-muted);">Nenhum item equipado no corpo. Clique para equipar.</span>
+                <span style="font-size:0.8rem; color:var(--text-muted);">Nenhum item equipado no corpo. Clique para equipar ou arraste aqui.</span>
               </div>
             }
           </div>
 
-          <!-- Seção 2: MOCHILA (0/6) -->
+          <!-- Seção 2: MOCHILA (X/6) -->
           <div class="arsenal-category-header" style="margin-top:1.5rem;">
             <span class="arsenal-category-bar"></span>
-            <span>MOCHILA ({{ itensMochila().length }}/6)</span>
+            <span>MOCHILA ({{ itensMochila().length }}/6) — Bagagem &amp; Reserva</span>
           </div>
 
-          <div class="arsenal-grid">
+          <div
+            class="arsenal-grid"
+            [class.drag-target-active]="zonaArrastoAtiva() === 'mochila'"
+            (dragover)="onDragOver($event, 'mochila')"
+            (dragleave)="onDragLeave($event, 'mochila')"
+            (drop)="onDrop($event, 'mochila')"
+          >
             @for (item of itensMochila(); track item.id) {
-              <div class="arsenal-card">
-                <div class="arsenal-img-container" (click)="trocarImagemItem(item)" title="Clique para trocar imagem">
+              <div
+                class="arsenal-card"
+                [class.is-dragging]="itemArrastando()?.id === item.id"
+                draggable="true"
+                (dragstart)="onDragStart($event, item)"
+                (dragend)="onDragEnd()"
+              >
+                <div class="arsenal-img-container" (click)="trocarImagemItem(item)" title="Clique para editar ou trocar imagem">
                   @if (item.imagemUrl) {
                     <img [src]="item.imagemUrl" [alt]="item.nome" loading="lazy" />
                   } @else {
@@ -345,9 +397,13 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                       <span>+ Imagem</span>
                     </div>
                   }
-                  <div class="arsenal-img-overlay">
-                    <span style="display:inline-flex; align-items:center; gap:0.3rem;"><app-ui-icon name="camera" [size]="14"></app-ui-icon> Trocar Imagem</span>
-                  </div>
+                  <label class="arsenal-img-overlay" (click)="$event.stopPropagation()" title="Clique para escolher foto do computador">
+                    <span style="display:inline-flex; align-items:center; gap:0.3rem; cursor:pointer;">
+                      <app-ui-icon name="camera" [size]="14"></app-ui-icon>
+                      <span>Trocar Foto</span>
+                    </span>
+                    <input type="file" accept="image/*" style="display:none;" (change)="onCardImageUpload($event, item)" />
+                  </label>
                 </div>
 
                 <div class="arsenal-card-body">
@@ -372,6 +428,14 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   </button>
                   <button
                     type="button"
+                    class="arsenal-action-btn btn-transfer"
+                    (click)="moverItem(item.id, 'corpo')"
+                    title="Equipar no Corpo (ou arraste com o mouse)"
+                  >
+                    <app-ui-icon name="transfer" [size]="14"></app-ui-icon>
+                  </button>
+                  <button
+                    type="button"
                     class="arsenal-action-btn"
                     (click)="editarItem(item)"
                     title="Editar dados e imagem do item"
@@ -381,7 +445,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   <button
                     type="button"
                     class="arsenal-action-btn btn-delete"
-                    (click)="removerArma(item.id)"
+                    (click)="removerArma(item.id, $event)"
                     title="Remover item da mochila"
                   >
                     <app-ui-icon name="trash" [size]="14"></app-ui-icon>
@@ -526,6 +590,9 @@ export class SheetComponent {
   };
   public readonly loreAberto = signal<string | null>(null);
   public novoItemInput = '';
+  public readonly itemArrastando = signal<ArmaInvestigador | null>(null);
+  public readonly zonaArrastoAtiva = signal<'corpo' | 'mochila' | null>(null);
+  public readonly mensagemAvisoArsenal = signal<string | null>(null);
 
   public readonly topPericias = computed(() => {
     const inv = this.svc.inv();
@@ -619,10 +686,84 @@ export class SheetComponent {
     this.svc.modalAberto.set('arma');
   }
 
-  public removerArma(id: string): void {
-    this.svc.atualizarInvestigadorAtivo((inv) => {
-      inv.armas = (inv.armas || []).filter((w) => w.id !== id);
-    });
+  public removerArma(id: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.svc.removerArma(id);
+  }
+
+  public moverItem(id: string, destino: 'corpo' | 'mochila'): void {
+    const res = this.svc.moverArma(id, destino);
+    if (!res.sucesso && res.mensagem) {
+      this.mensagemAvisoArsenal.set(res.mensagem);
+      setTimeout(() => this.mensagemAvisoArsenal.set(null), 4000);
+    } else {
+      this.mensagemAvisoArsenal.set(null);
+    }
+  }
+
+  public onDragStart(event: DragEvent, item: ArmaInvestigador): void {
+    this.itemArrastando.set(item);
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('text/plain', item.id);
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  public onDragEnd(): void {
+    this.itemArrastando.set(null);
+    this.zonaArrastoAtiva.set(null);
+  }
+
+  public onDragOver(event: DragEvent, zona: 'corpo' | 'mochila'): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    if (this.zonaArrastoAtiva() !== zona) {
+      this.zonaArrastoAtiva.set(zona);
+    }
+  }
+
+  public onDragLeave(event: DragEvent, zona: 'corpo' | 'mochila'): void {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    if (
+      event.clientX < rect.left ||
+      event.clientX >= rect.right ||
+      event.clientY < rect.top ||
+      event.clientY >= rect.bottom
+    ) {
+      if (this.zonaArrastoAtiva() === zona) {
+        this.zonaArrastoAtiva.set(null);
+      }
+    }
+  }
+
+  public onDrop(event: DragEvent, destino: 'corpo' | 'mochila'): void {
+    event.preventDefault();
+    this.zonaArrastoAtiva.set(null);
+    const dragged = this.itemArrastando();
+    const id = dragged?.id || event.dataTransfer?.getData('text/plain');
+    if (!id) return;
+
+    this.moverItem(id, destino);
+    this.itemArrastando.set(null);
+  }
+
+  public onCardImageUpload(event: Event, item: ArmaInvestigador): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = String(e.target?.result || '');
+        if (dataUrl) {
+          this.svc.atualizarImagemArma(item.id, dataUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   public adicionarItem(): void {

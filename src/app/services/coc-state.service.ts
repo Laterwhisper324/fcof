@@ -390,10 +390,61 @@ export class CocStateService {
     const activeId = this.investigadorAtivoId();
     const idx = list.findIndex((i) => i.id === activeId);
     if (idx >= 0) {
-      mutator(list[idx]);
-      this.recalcularDerivadosEPericiasInterno(list[idx], { resetarAtuais: false });
-      this.investigadores.set(list);
+      const cloned: Investigador = JSON.parse(JSON.stringify(list[idx]));
+      mutator(cloned);
+      this.recalcularDerivadosEPericiasInterno(cloned, { resetarAtuais: false });
+      list[idx] = cloned;
+      this.investigadores.set([...list]);
     }
+  }
+
+  public salvarArma(item: ArmaInvestigador): void {
+    this.atualizarInvestigadorAtivo((inv) => {
+      const lista = [...(inv.armas || [])];
+      const idx = lista.findIndex((a) => a.id === item.id);
+      if (idx >= 0) {
+        lista[idx] = { ...item };
+      } else {
+        lista.push({ ...item });
+      }
+      inv.armas = lista;
+    });
+  }
+
+  public removerArma(id: string): void {
+    this.atualizarInvestigadorAtivo((inv) => {
+      inv.armas = (inv.armas || []).filter((w) => w.id !== id);
+    });
+  }
+
+  public moverArma(id: string, novaLocalizacao: 'corpo' | 'mochila'): { sucesso: boolean; mensagem?: string } {
+    const inv = this.inv();
+    const item = (inv.armas || []).find((w) => w.id === id);
+    if (!item) return { sucesso: false, mensagem: 'Item não encontrado no arsenal.' };
+
+    const itensDestino = (inv.armas || []).filter((w) => (w.localizacao || 'corpo') === novaLocalizacao && w.id !== id);
+    const limite = novaLocalizacao === 'corpo' ? 3 : 6;
+    if (itensDestino.length >= limite) {
+      const localNome = novaLocalizacao === 'corpo' ? 'o Corpo (máx. 3)' : 'a Mochila (máx. 6)';
+      return { sucesso: false, mensagem: `Não é possível mover: ${localNome} já atingiu a capacidade máxima.` };
+    }
+
+    this.atualizarInvestigadorAtivo((curr) => {
+      const arma = (curr.armas || []).find((w) => w.id === id);
+      if (arma) {
+        arma.localizacao = novaLocalizacao;
+      }
+    });
+    return { sucesso: true };
+  }
+
+  public atualizarImagemArma(id: string, imagemUrl: string): void {
+    this.atualizarInvestigadorAtivo((inv) => {
+      const arma = (inv.armas || []).find((w) => w.id === id);
+      if (arma) {
+        arma.imagemUrl = imagemUrl;
+      }
+    });
   }
 
   public trocarInvestigadorAtivo(id: string): void {
