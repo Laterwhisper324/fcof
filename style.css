@@ -2324,3 +2324,30 @@ body.modal-open {
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   ANIMAÇÕES ANGULAR — DADO D20 (20 LADOS) & ÍCONES VETORIAIS
+   ========================================================================== */
+
+button:hover app-d20-icon .d20-svg,
+.btn:hover app-d20-icon .d20-svg,
+.btn-roll:hover app-d20-icon .d20-svg,
+.roll-trigger-btn:hover app-d20-icon .d20-svg,
+.live-attr-box:hover app-d20-icon .d20-svg {
+  animation: d20-rotacao-3d 1.2s linear infinite;
+}
+
+button:active app-d20-icon .d20-svg,
+.btn:active app-d20-icon .d20-svg,
+.btn-roll:active app-d20-icon .d20-svg,
+.roll-trigger-btn:active app-d20-icon .d20-svg,
+.live-attr-box:active app-d20-icon .d20-svg {
+  animation: d20-tumulto-rolagem 0.75s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.btn-roll {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+

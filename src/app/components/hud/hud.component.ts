@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CocStateService } from '../../services/coc-state.service';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 
 @Component({
   selector: 'app-hud',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, UiIconComponent],
   template: `
     <section class="hud-status-bar no-print" aria-label="Status Rápido do Investigador">
       <div class="hud-identity">
@@ -86,8 +87,15 @@ import { CocStateService } from '../../services/coc-state.service';
           [class.btn-danger]="svc.painelVitaisAberto()"
           (click)="svc.painelVitaisAberto.set(!svc.painelVitaisAberto())"
           title="Expandir calculadora de Dano Único e Condições Vitais"
+          style="display:inline-flex; align-items:center; gap:0.35rem;"
         >
-          {{ svc.painelVitaisAberto() ? '✕ Fechar Dano' : '⚡ Dano / Condições' }}
+          @if (svc.painelVitaisAberto()) {
+            <app-ui-icon name="close" [size]="12"></app-ui-icon>
+            <span>Fechar Dano</span>
+          } @else {
+            <app-ui-icon name="lightning" [size]="13"></app-ui-icon>
+            <span>Dano / Condições</span>
+          }
         </button>
       </div>
     </section>

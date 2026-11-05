@@ -1,18 +1,22 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CocStateService } from '../../services/coc-state.service';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 
 @Component({
   selector: 'app-investigadores-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UiIconComponent],
   template: `
     @if (svc.modalAberto() === 'investigadores') {
       <div class="modal-backdrop" (click)="fechar()">
         <div class="modal-box" (click)="$event.stopPropagation()">
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.75rem; margin-bottom:1rem;">
             <h3 style="margin:0; font-family:var(--font-serif); font-size:1.35rem;">Investigadores Registrados</h3>
-            <button type="button" class="btn btn-sm" (click)="fechar()">✕ Fechar</button>
+            <button type="button" class="btn btn-sm" (click)="fechar()" style="display:inline-flex; align-items:center; gap:0.3rem;">
+              <app-ui-icon name="close" [size]="12"></app-ui-icon>
+              <span>Fechar</span>
+            </button>
           </div>
 
           <p style="font-size:0.86rem; color:var(--text-muted); margin:0 0 1rem;">

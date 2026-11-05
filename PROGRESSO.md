@@ -95,6 +95,23 @@ Implementadas com sucesso todas as 8 tarefas de refinamento solicitadas pelo usu
    - Estética editorial 100% preservada (aprovada no `taste-skill` com 0 FAIL).
    - Suporte oficial de deploy configurado via `vercel.json` com reescrita SPA para `/index.html`, cache imutável para assets estáticos e cabeçalhos de segurança HTTP.
 
+9. **Substituição Integral de Emojis por Ícones Animados em Angular (D20 3D & UI Vintage)**:
+   - **Dado D20 (20 Lados) Animado em 3D (`app-d20-icon`)**:
+     - Criação do componente standalone [`src/app/components/d20-icon/d20-icon.component.ts`](file:///C:/Users/nceci/.gemini/antigravity/scratch/fcof/src/app/components/d20-icon/d20-icon.component.ts) com geometria exata de icosaedro (projeção ortográfica de 10 facetas visíveis em tons de latão e dourado vintage com o número "20" gravado).
+     - Rotação 3D contínua suave (`d20-rotacao-3d`) no hover de botões e ao rolar dados (`rolandoDado` signal).
+     - Animação de tumulto e queda tridimensional de dados (`d20-tumulto-rolagem`) no clique ativo de todos os botões de rolagem de características, perícias, armas e rolador livre 1D100.
+   - **Ícones Vetoriais Vintage Animados (`app-ui-icon`)**:
+     - Criação do componente standalone [`src/app/components/ui-icon/ui-icon.component.ts`](file:///C:/Users/nceci/.gemini/antigravity/scratch/fcof/src/app/components/ui-icon/ui-icon.component.ts) substituindo todos os emojis por gráficos vetoriais SVG estilizados:
+       - Alternador de tema: Sol com raios giratórios suaves (`sun`) e Lua com estrela cintilante (`moon`).
+       - Fechamento de modais e gavetas: Cruz geométrica com rotação de 90° no hover (`close`).
+       - Dano e vitais: Raio pulsante com brilho dourado (`lightning`).
+       - Carregamento de imagens: Pasta vintage com aba de arquivo (`folder`) e câmera fotográfica de fole (`camera`).
+       - Ações de inventário e lore: Caneta-tinteiro inclinando para escrita (`pen`) e lixeira abrindo a tampa (`trash`).
+       - Destaques místicos: Signo Ancestral / Estrela oculta com aura cósmica (`elder-sign`).
+       - Confirmação de conclusão: Marca de verificação dinâmica (`check`).
+   - 0 emojis remanescentes em todo o código-fonte da aplicação Angular.
+
+
 ---
 
 ## 5. Próximas Tarefas de Interface & Layout (Backlog para Envio Futuro)
@@ -166,4 +183,17 @@ Este bloco reúne o diagnóstico completo e o roteiro de implementação para as
 
 ### Prompt Sugerido para Envio Futuro:
 > *"Corrija agora os problemas de rolagem da topbar e da footbar conforme documentado na Seção 5 do PROGRESSO.md: eleve o z-index e isole o contexto de empilhamento da .app-header para que nenhum botão passe por cima ao scrollar, e configure o layout do #app-root como flex column com min-height: 100vh e flex: 1 no conteúdo para que a .app-footer fique sempre ancorada na base sem deixar vão embaixo."*
+
+---
+
+## 6. Exibição de Perícias com Valor Bruto (Remoção da Porcentagem)
+
+- **Objetivo**: Substituir a exibição com símbolo de porcentagem (`%`) pelo valor numérico bruto (`número puro`) em todas as perícias (na Ficha Viva, no Assistente Wizard, na Gaveta de Dados e no Toast de Rolagem), facilitando a leitura e alinhando com a Ficha Oficial do Chamado de Cthulhu 7ª Edição (onde cada perícia apresenta seu valor base/alvo e frações ½ e ⅕ sem `%`).
+- **Arquivos Atualizados**:
+  - `src/app/components/sheet/sheet.component.ts`: Perícias em destaque, grade de perícias, Esquiva e Nível de Crédito sem `%`.
+  - `src/app/components/wizard/wizard.component.ts`: Seleção de perícias ocupacionais, contadores de crédito, tabela da Etapa 6 (Base, Total e ½ / ⅕) e resumo de finanças sem `%`.
+  - `src/app/components/dice-drawer/dice-drawer.component.ts`: Alvo de rolagem e frações regulares/difíceis/extremas sem `%`.
+  - `src/app/components/roll-toast/roll-toast.component.ts`: Notificação flutuante de rolagem sem `%`.
+  - `app.js`: Sincronização dos mesmos padrões de exibição sem `%`.
+
 

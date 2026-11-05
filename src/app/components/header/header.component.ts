@@ -1,11 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CocStateService } from '../../services/coc-state.service';
+import { D20IconComponent } from '../d20-icon/d20-icon.component';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, D20IconComponent, UiIconComponent],
   template: `
     <header class="app-header no-print">
       <div class="header-inner">
@@ -32,7 +34,7 @@ import { CocStateService } from '../../services/coc-state.service';
               >
                 <span><strong>{{ svc.inv().identidade.nome || 'Sem Nome' }}</strong></span>
                 <span style="color:var(--text-muted);">• {{ svc.inv().ocupacaoNome }}</span>
-                <span style="font-size:0.7rem; color:var(--text-faint);">▼</span>
+                <app-ui-icon name="chevron-down" [size]="10"></app-ui-icon>
               </button>
               <span class="brand-subtitle" style="margin:0;">Dossiê &amp; Ficha Viva (1920s)</span>
             </div>
@@ -68,11 +70,13 @@ import { CocStateService } from '../../services/coc-state.service';
           <!-- Rolador 1D100 -->
           <button
             type="button"
-            class="btn btn-sm"
+            class="btn btn-sm btn-roll"
             (click)="svc.gavetaDadosAberta.set(!svc.gavetaDadosAberta())"
             title="Abrir Rolador 1D100 e Histórico da Sessão"
+            style="display:inline-flex; align-items:center; gap:0.4rem;"
           >
-            🎲 1D100
+            <app-d20-icon [size]="16" [spinning]="svc.rolandoDado()"></app-d20-icon>
+            <span>1D100</span>
           </button>
 
           <!-- Exportador PDF Oficial -->
@@ -93,8 +97,15 @@ import { CocStateService } from '../../services/coc-state.service';
             (click)="svc.alternarTema()"
             [title]="svc.tema() === 'dark' ? 'Mudar para Modo Claro (Papel Linho)' : 'Mudar para Modo Escuro (Gabinete Noturno)'"
             aria-label="Alternar tema de cores"
+            style="display:inline-flex; align-items:center; gap:0.35rem;"
           >
-            {{ svc.tema() === 'dark' ? '☀️ Claro' : '🌙 Noturno' }}
+            @if (svc.tema() === 'dark') {
+              <app-ui-icon name="sun" [size]="15"></app-ui-icon>
+              <span>Claro</span>
+            } @else {
+              <app-ui-icon name="moon" [size]="15"></app-ui-icon>
+              <span>Noturno</span>
+            }
           </button>
         </div>
       </div>

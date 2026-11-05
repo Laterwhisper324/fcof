@@ -2,12 +2,14 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CocStateService } from '../../services/coc-state.service';
+import { D20IconComponent } from '../d20-icon/d20-icon.component';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
 
 @Component({
   selector: 'app-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, D20IconComponent, UiIconComponent],
   template: `
     <main class="wizard-container" aria-label="Assistente de Criação de Investigador">
       <!-- Barra de Progresso e Navegação dos 9 Passos -->
@@ -129,8 +131,9 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
             <!-- Barra de Ações Rápidas de Rolagem -->
             <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:1.25rem; background:var(--ground); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border);">
               <div style="display:flex; align-items:center; gap:0.5rem;">
-                <button type="button" class="btn btn-primary" (click)="rolarTodosAtributos()" title="Rolar todos os 8 atributos com as fórmulas canônicas">
-                  🎲 Rolar Todos os Atributos
+                <button type="button" class="btn btn-primary btn-roll" (click)="rolarTodosAtributos()" title="Rolar todos os 8 atributos com as fórmulas canônicas" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                  <app-d20-icon [size]="16" [spinning]="svc.rolandoDado()"></app-d20-icon>
+                  <span>Rolar Todos os Atributos</span>
                 </button>
                 <button type="button" class="btn" (click)="aplicarArranjoPadrao()" title="Aplicar conjunto fixo: 40, 50, 50, 50, 60, 60, 70, 80">
                   Conjunto Rápido Padrão
@@ -182,13 +185,14 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   <!-- Botão de Rolagem Individual com Rótulo Visível, Ícone, Aria-label e Tooltip (Tarefa 1) -->
                   <button
                     type="button"
-                    class="btn btn-sm"
-                    style="width: 100%; margin-top: 0.35rem; font-size: 0.78rem;"
+                    class="btn btn-sm btn-roll"
+                    style="width: 100%; margin-top: 0.35rem; font-size: 0.78rem; display:inline-flex; align-items:center; justify-content:center; gap:0.35rem;"
                     (click)="rolarAtributoUnico(atr)"
                     [attr.aria-label]="'Rolar ' + atr.nome + ' (' + atr.sigla + ') usando a fórmula ' + atr.formula"
                     [title]="'Clique para rolar ' + atr.sigla + ' usando ' + atr.formula + ' (' + atr.descricao + ')'"
                   >
-                    🎲 Rolar {{ atr.sigla }} ({{ atr.formula }})
+                    <app-d20-icon [size]="14"></app-d20-icon>
+                    <span>Rolar {{ atr.sigla }} ({{ atr.formula }})</span>
                   </button>
                 </div>
               }
@@ -223,8 +227,9 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     <div style="font-size:0.86rem; color:var(--text-muted);">
                       Sua faixa etária concede <strong>{{ regraIdade().testesMelhoriaEDU }} teste(s) de melhoria de EDU</strong> (Role 1D100; se for maior que EDU atual, adicione +1D10).
                     </div>
-                    <button type="button" class="btn btn-primary btn-sm" (click)="rolarTestesMelhoriaEDU()">
-                      🎲 Rolar {{ regraIdade().testesMelhoriaEDU }} Teste(s) de EDU
+                    <button type="button" class="btn btn-primary btn-sm btn-roll" (click)="rolarTestesMelhoriaEDU()" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                      <app-d20-icon [size]="15" [spinning]="svc.rolandoDado()"></app-d20-icon>
+                      <span>Rolar {{ regraIdade().testesMelhoriaEDU }} Teste(s) de EDU</span>
                     </button>
                   </div>
 
@@ -320,8 +325,9 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                 </p>
 
                 <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.75rem;">
-                  <button type="button" class="btn btn-primary" (click)="rolarSorteInicial()">
-                    🎲 {{ regraIdade().duplaSorte ? 'Rolar Sorte 2x (Jovem 15–19 anos)' : 'Rolar Sorte (3D6×5)' }}
+                  <button type="button" class="btn btn-primary btn-roll" (click)="rolarSorteInicial()" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                    <app-d20-icon [size]="16" [spinning]="svc.rolandoDado()"></app-d20-icon>
+                    <span>{{ regraIdade().duplaSorte ? 'Rolar Sorte 2x (Jovem 15–19 anos)' : 'Rolar Sorte (3D6×5)' }}</span>
                   </button>
 
                   <div style="display:flex; align-items:center; gap:0.4rem;">
@@ -414,7 +420,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   <span class="attr-sigla">Esquiva Base</span>
                   <span class="attr-formula-badge">DES ÷ 2</span>
                 </div>
-                <div class="vital-big-number">{{ svc.inv().derivados.esquivaBase }}%</div>
+                <div class="vital-big-number">{{ svc.inv().derivados.esquivaBase }}</div>
               </div>
             </div>
           </div>
@@ -434,7 +440,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                 >
                   @for (o of svc.OCUPACOES; track o.id) {
                     <option [value]="o.id">
-                      {{ o.nome }} — [{{ o.formulaTexto }} | Crédito {{ o.creditoMin }}–{{ o.creditoMax }}%]
+                      {{ o.nome }} — [{{ o.formulaTexto }} | Crédito {{ o.creditoMin }}–{{ o.creditoMax }}]
                     </option>
                   }
                 </select>
@@ -469,7 +475,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
               </div>
               <div style="display:flex; flex-wrap:wrap; gap:1.2rem; font-size:0.86rem; color:var(--text-muted);">
                 <div><strong>Fórmula:</strong> <code>{{ svc.totaisPericias().detalheOcupacao }}</code></div>
-                <div><strong>Faixa de Nível de Crédito:</strong> <code>{{ ocupacaoAtual()?.creditoMin }}% a {{ ocupacaoAtual()?.creditoMax }}%</code></div>
+                <div><strong>Faixa de Nível de Crédito:</strong> <code>{{ ocupacaoAtual()?.creditoMin }} a {{ ocupacaoAtual()?.creditoMax }}</code></div>
               </div>
             </div>
 
@@ -494,7 +500,9 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   <span>Contador:</span>
                   <strong>{{ totalPericiasOcupacionaisSelecionadas() }} / 8 Selecionadas</strong>
                   @if (totalPericiasOcupacionaisSelecionadas() === 8) {
-                    <span style="color:var(--accent-primary); font-weight:bold;">✓ Completo</span>
+                    <span style="color:var(--accent-primary); font-weight:bold; display:inline-flex; align-items:center; gap:0.25rem;">
+                      <app-ui-icon name="check" [size]="14"></app-ui-icon> Completo
+                    </span>
                   } @else {
                     <span style="font-size:0.75rem;">(Faltam: {{ 8 - totalPericiasOcupacionaisSelecionadas() }})</span>
                   }
@@ -534,7 +542,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     />
                     <div style="display:flex; flex-direction:column; line-height:1.2;">
                       <span style="font-weight: 500;">{{ p.nome }}</span>
-                      <span style="font-size: 0.74rem; color: var(--text-muted);">Base: {{ p.base }}% {{ isPericiaFixa(p.id) ? '(Fixa)' : '' }}</span>
+                      <span style="font-size: 0.74rem; color: var(--text-muted);">Base: {{ p.base }} {{ isPericiaFixa(p.id) ? '(Fixa)' : '' }}</span>
                     </div>
                   </label>
                 }
@@ -566,8 +574,8 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
 
               <div class="counter-pill" [class.is-exceeded]="!svc.totaisPericias().creditoValido">
                 <span>Crédito:</span>
-                <strong>{{ svc.totaisPericias().nivelCredito }}%</strong>
-                <span style="font-size:0.75rem;">(Faixa: {{ svc.totaisPericias().creditoMin }}–{{ svc.totaisPericias().creditoMax }}%)</span>
+                <strong>{{ svc.totaisPericias().nivelCredito }}</strong>
+                <span style="font-size:0.75rem;">(Faixa: {{ svc.totaisPericias().creditoMin }}–{{ svc.totaisPericias().creditoMax }})</span>
               </div>
             </div>
 
@@ -579,8 +587,10 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   class="filter-chip"
                   [class.active]="svc.filtroPericiaWizard() === 'ocupacionais' && !svc.buscaPericiaWizard()"
                   (click)="svc.filtroPericiaWizard.set('ocupacionais'); svc.buscaPericiaWizard.set('')"
+                  style="display:inline-flex; align-items:center; gap:0.35rem;"
                 >
-                  ⭐ Ocupacionais ({{ contarPericiasFiltro('ocupacionais') }})
+                  <app-ui-icon name="star" [size]="13"></app-ui-icon>
+                  <span>Ocupacionais ({{ contarPericiasFiltro('ocupacionais') }})</span>
                 </button>
                 <button
                   type="button"
@@ -637,7 +647,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                           }
                         </div>
                       </td>
-                      <td style="font-variant-numeric:tabular-nums;">{{ p.base }}%</td>
+                      <td style="font-variant-numeric:tabular-nums;">{{ p.base }}</td>
 
                       <!-- Pontos de Ocupação com Bloqueio Imediato Estrito (Tarefa 5) -->
                       <td>
@@ -702,10 +712,10 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                       </td>
 
                       <td style="font-variant-numeric:tabular-nums; font-weight:bold;">
-                        {{ svc.obterTotalPericiaObj(p) }}%
+                        {{ svc.obterTotalPericiaObj(p) }}
                       </td>
                       <td style="font-variant-numeric:tabular-nums; font-size:0.78rem; color:var(--text-muted);">
-                        {{ svc.mq(svc.obterTotalPericiaObj(p)).metade }}% / {{ svc.mq(svc.obterTotalPericiaObj(p)).quinto }}%
+                        {{ svc.mq(svc.obterTotalPericiaObj(p)).metade }} / {{ svc.mq(svc.obterTotalPericiaObj(p)).quinto }}
                       </td>
                     </tr>
                   }
@@ -844,7 +854,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
             <!-- Finanças dos Anos 1920 -->
             <div class="sheet-section-box">
               <h3 style="margin:0 0 0.5rem; font-family:var(--font-serif); font-size:1.2rem;">
-                Finanças da Década de 1920 (Nível de Crédito: {{ svc.totaisPericias().nivelCredito }}%)
+                Finanças da Década de 1920 (Nível de Crédito: {{ svc.totaisPericias().nivelCredito }})
               </h3>
               <div class="grid-3" style="font-size:0.88rem;">
                 <div><strong>Nível de Gastos:</strong> \${{ svc.inv().financas.nivelGastos }}</div>
@@ -921,8 +931,10 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
               type="button"
               class="btn btn-primary"
               (click)="svc.modoView.set('sheet')"
+              style="display:inline-flex; align-items:center; gap:0.4rem;"
             >
-              Concluir &amp; Abrir Ficha Viva ✓
+              <span>Concluir &amp; Abrir Ficha Viva</span>
+              <app-ui-icon name="check" [size]="14"></app-ui-icon>
             </button>
           }
         </footer>
@@ -1095,6 +1107,7 @@ export class WizardComponent {
 
   // --- TAREFA 1: AÇÕES DE CARACTERÍSTICAS ---
   public rolarTodosAtributos(): void {
+    this.svc.dispararAnimacaoDado();
     if (this.svc.R.rolarConjuntoAtributos) {
       const res = this.svc.R.rolarConjuntoAtributos('padrao');
       this.svc.atualizarInvestigadorAtivo((inv) => {
@@ -1107,6 +1120,7 @@ export class WizardComponent {
   }
 
   public rolarAtributoUnico(atr: any): void {
+    this.svc.dispararAnimacaoDado();
     const valor = atr.tipoDado === '2D6+6'
       ? (this.svc.R.rolarAtributo2D6Mais6 ? this.svc.R.rolarAtributo2D6Mais6().valor : 60)
       : (this.svc.R.rolarAtributo3D6 ? this.svc.R.rolarAtributo3D6().valor : 50);
@@ -1124,6 +1138,7 @@ export class WizardComponent {
 
   // --- TAREFA 2: IDADE & SORTE ---
   public rolarTestesMelhoriaEDU(): void {
+    this.svc.dispararAnimacaoDado();
     const reg = this.regraIdade();
     const eduBase = this.svc.inv().atributosBase['EDU'];
     if (this.svc.R.executarTestesMelhoriaEDU) {
@@ -1136,6 +1151,7 @@ export class WizardComponent {
   }
 
   public rolarSorteInicial(): void {
+    this.svc.dispararAnimacaoDado();
     const reg = this.regraIdade();
     if (this.svc.R.rolarSorteInicial) {
       const res = this.svc.R.rolarSorteInicial(reg.duplaSorte);
