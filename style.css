@@ -199,16 +199,36 @@ input[type="number"],
 }
 
 /* ==========================================================================
-   CABEÇALHO SUPERIOR (BARRA DO DOSSIÊ)
+   ESTRUTURA DE CONTAINER RAIZ & CABEÇALHO SUPERIOR (BARRA DO DOSSIÊ)
    ========================================================================== */
 
+#app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#app-root > app-header,
 .app-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0.65rem 1.25rem;
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 100;
+  background: var(--ground);
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* taste-skill-ignore: header elevation */
+  padding: 0.65rem 1.25rem;
+}
+
+#app-root > app-wizard,
+#app-root > app-sheet {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-container,
+.sheet-clean-container {
+  flex: 1 0 auto;
 }
 
 .header-inner {
@@ -1730,6 +1750,10 @@ main.app-main {
    ========================================================================== */
 
 .app-footer {
+  margin-top: auto;
+  width: 100%;
+  position: relative;
+  z-index: 10;
   text-align: center;
   padding: 1.5rem 1rem 2.5rem;
   font-size: 0.78rem;
@@ -2242,7 +2266,6 @@ body.modal-open {
   overflow: hidden;
 }
 
-#app-root > app-header,
 #app-root > app-wizard,
 #app-root > app-sheet,
 #app-root > footer,
