@@ -2,18 +2,23 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CocStateService } from '../../services/coc-state.service';
+import { D20IconComponent } from '../d20-icon/d20-icon.component';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 
 @Component({
   selector: 'app-dice-drawer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, D20IconComponent, UiIconComponent],
   template: `
     @if (svc.gavetaDadosAberta()) {
       <div class="dice-drawer-backdrop no-print" (click)="svc.gavetaDadosAberta.set(false)"></div>
       <aside class="dice-drawer no-print" aria-label="Rolador 1D100 e Histórico">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border-strong); padding-bottom:0.6rem; margin-bottom:0.85rem;">
           <h2 style="margin:0; font-family:var(--font-serif); font-size:1.25rem;">Rolador 1D100 &amp; Histórico</h2>
-          <button type="button" class="btn btn-sm" (click)="svc.gavetaDadosAberta.set(false)">✕ Fechar</button>
+          <button type="button" class="btn btn-sm" (click)="svc.gavetaDadosAberta.set(false)" style="display:inline-flex; align-items:center; gap:0.3rem;">
+            <app-ui-icon name="close" [size]="12"></app-ui-icon>
+            <span>Fechar</span>
+          </button>
         </div>
 
         <!-- Modificadores de Bônus e Penalidade -->
@@ -35,11 +40,12 @@ import { CocStateService } from '../../services/coc-state.service';
 
         <button
           type="button"
-          class="btn btn-primary"
-          style="width:100%; margin-bottom:0.85rem;"
+          class="btn btn-primary btn-roll"
+          style="width:100%; margin-bottom:0.85rem; display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;"
           (click)="svc.rolarPericiaOuAtributo('Rolagem Livre 1D100', 50)"
         >
-          🎲 Rolar 1D100 Livre (Alvo 50%)
+          <app-d20-icon [size]="20" [spinning]="svc.rolandoDado()"></app-d20-icon>
+          <span>Rolar 1D100 Livre (Alvo 50)</span>
         </button>
 
         <!-- Resultado Atual Detalhado -->
@@ -51,7 +57,7 @@ import { CocStateService } from '../../services/coc-state.service';
               <div style="font-weight:bold; font-size:0.95rem;">{{ svc.ultimaRolagem()?.avaliacao?.rotulo }}</div>
               @if (svc.ultimaRolagem()?.d100?.tipoModificador !== 'DANO') {
                 <div style="font-size:0.75rem; font-variant-numeric:tabular-nums; margin-top:0.2rem;">
-                  Reg: {{ svc.ultimaRolagem()?.avaliacao?.regular }}% | Dif: {{ svc.ultimaRolagem()?.avaliacao?.dificil }}% | Ext: {{ svc.ultimaRolagem()?.avaliacao?.extremo }}%
+                  Reg: {{ svc.ultimaRolagem()?.avaliacao?.regular }} | Dif: {{ svc.ultimaRolagem()?.avaliacao?.dificil }} | Ext: {{ svc.ultimaRolagem()?.avaliacao?.extremo }}
                 </div>
               }
             </div>
@@ -89,7 +95,7 @@ import { CocStateService } from '../../services/coc-state.service';
             <div class="roll-log-item">
               <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted);">
                 <span>{{ item.horario }} • {{ item.investigador }}</span>
-                <span>Alvo: {{ item.valorAlvo }}%</span>
+                <span>Alvo: {{ item.valorAlvo }}</span>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.2rem;">
                 <span style="font-weight:bold;">{{ item.rotulo }}</span>

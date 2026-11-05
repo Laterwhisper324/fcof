@@ -199,36 +199,17 @@ input[type="number"],
 }
 
 /* ==========================================================================
-   ESTRUTURA DE CONTAINER RAIZ & CABEÇALHO SUPERIOR (BARRA DO DOSSIÊ)
+   CABEÇALHO SUPERIOR (BARRA DO DOSSIÊ)
    ========================================================================== */
 
-#app-root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-#app-root > app-header,
 .app-header {
+  background: var(--ground);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 0.65rem 1.25rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--ground);
-  border-bottom: 1px solid var(--border-strong);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* taste-skill-ignore: header elevation */
-  padding: 0.65rem 1.25rem;
-}
-
-#app-root > app-wizard,
-#app-root > app-sheet {
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.wizard-container,
-.sheet-clean-container {
-  flex: 1 0 auto;
 }
 
 .header-inner {
@@ -2266,11 +2247,35 @@ body.modal-open {
   overflow: hidden;
 }
 
+#app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#app-root > app-header,
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--ground);
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* taste-skill-ignore: header elevation */
+}
+
 #app-root > app-wizard,
-#app-root > app-sheet,
-#app-root > footer,
+#app-root > app-sheet {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
 .wizard-container,
 .sheet-clean-container {
+  flex: 1 0 auto;
+  width: 100%;
   position: relative;
   z-index: 1;
 }
@@ -2347,3 +2352,30 @@ body.modal-open {
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   ANIMAÇÕES ANGULAR — DADO D20 (20 LADOS) & ÍCONES VETORIAIS
+   ========================================================================== */
+
+button:hover app-d20-icon .d20-svg,
+.btn:hover app-d20-icon .d20-svg,
+.btn-roll:hover app-d20-icon .d20-svg,
+.roll-trigger-btn:hover app-d20-icon .d20-svg,
+.live-attr-box:hover app-d20-icon .d20-svg {
+  animation: d20-rotacao-3d 1.2s linear infinite;
+}
+
+button:active app-d20-icon .d20-svg,
+.btn:active app-d20-icon .d20-svg,
+.btn-roll:active app-d20-icon .d20-svg,
+.roll-trigger-btn:active app-d20-icon .d20-svg,
+.live-attr-box:active app-d20-icon .d20-svg {
+  animation: d20-tumulto-rolagem 0.75s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.btn-roll {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+

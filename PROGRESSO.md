@@ -95,19 +95,56 @@ Implementadas com sucesso todas as 8 tarefas de refinamento solicitadas pelo usu
    - Estética editorial 100% preservada (aprovada no `taste-skill` com 0 FAIL).
    - Suporte oficial de deploy configurado via `vercel.json` com reescrita SPA para `/index.html`, cache imutável para assets estáticos e cabeçalhos de segurança HTTP.
 
+9. **Substituição Integral de Emojis por Ícones Animados em Angular (D20 3D & UI Vintage)**:
+   - **Dado D20 (20 Lados) Animado em 3D (`app-d20-icon`)**:
+     - Criação do componente standalone [`src/app/components/d20-icon/d20-icon.component.ts`](file:///C:/Users/nceci/.gemini/antigravity/scratch/fcof/src/app/components/d20-icon/d20-icon.component.ts) com geometria exata de icosaedro (projeção ortográfica de 10 facetas visíveis em tons de latão e dourado vintage com o número "20" gravado).
+     - Rotação 3D contínua suave (`d20-rotacao-3d`) no hover de botões e ao rolar dados (`rolandoDado` signal).
+     - Animação de tumulto e queda tridimensional de dados (`d20-tumulto-rolagem`) no clique ativo de todos os botões de rolagem de características, perícias, armas e rolador livre 1D100.
+   - **Ícones Vetoriais Vintage Animados (`app-ui-icon`)**:
+     - Criação do componente standalone [`src/app/components/ui-icon/ui-icon.component.ts`](file:///C:/Users/nceci/.gemini/antigravity/scratch/fcof/src/app/components/ui-icon/ui-icon.component.ts) substituindo todos os emojis por gráficos vetoriais SVG estilizados:
+       - Alternador de tema: Sol com raios giratórios suaves (`sun`) e Lua com estrela cintilante (`moon`).
+       - Fechamento de modais e gavetas: Cruz geométrica com rotação de 90° no hover (`close`).
+       - Dano e vitais: Raio pulsante com brilho dourado (`lightning`).
+       - Carregamento de imagens: Pasta vintage com aba de arquivo (`folder`) e câmera fotográfica de fole (`camera`).
+       - Ações de inventário e lore: Caneta-tinteiro inclinando para escrita (`pen`) e lixeira abrindo a tampa (`trash`).
+       - Destaques místicos: Signo Ancestral / Estrela oculta com aura cósmica (`elder-sign`).
+       - Confirmação de conclusão: Marca de verificação dinâmica (`check`).
+   - 0 emojis remanescentes em todo o código-fonte da aplicação Angular.
+
+
 ---
 
-## 5. Implementação Concluída: Correção de Rolagem da Topbar e Ancoragem da Footbar
+## 5. Correções de Interface & Layout: Topbar e Footbar (Concluído)
 
-Implementadas com sucesso ambas as tarefas de interface e layout planejadas na Seção 5, garantindo que o cabeçalho superior nunca seja sobreposto ao rolar e que o rodapé permaneça sempre ancorado na base da tela sem vãos inferiores:
+Este bloco reúne a implementação concluída para as correções visuais de rolagem (scroll) e alinhamento vertical das barras superior (topbar) e inferior (footbar).
 
-### Tarefa A: Correção de Sobreposição da Topbar no Scroll (z-index & Stacking Context) — CONCLUÍDA
-- **Isolamento de Stacking Context**: No `style.css`, `#app-root > app-header` e `.app-header` foram isolados com `position: sticky`, `top: 0`, `z-index: 100`, `background: var(--ground)`, `border-bottom: 1px solid var(--border-strong)` e `box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08)`.
-- **Precedência de Camadas**: `#app-root > app-header` foi removido da regra compartilhada que atribuía `z-index: 1`, assegurando que `<app-wizard>`, `<app-sheet>`, containers de etapas e botões permaneçam estritamente em `z-index: 1` e passem por baixo da topbar com efeito de rolagem impecável.
+### Tarefa A: Correção de Sobreposição da Topbar no Scroll (z-index & Stacking Context) — ✅ Concluído
+- **Problema Resolvido**:
+  - Ao rolar a página verticalmente para baixo, os botões das etapas do assistente (`.wizard-step-btn`), números, textos e outros elementos da página não deslizam mais por cima da barra de cabeçalho (`.app-header`).
+- **Implementação Realizada**:
+  1. No `style.css`, `#app-root > app-header` e a classe `.app-header` foram configurados com prioridade alta de camada (`position: sticky; top: 0; z-index: 100; background: var(--ground); border-bottom: 1px solid var(--border-strong); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);`).
+  2. Garantiu-se que `<app-wizard>`, `<app-sheet>` e seus containers internos permaneçam com `z-index: 1`, passando estritamente por baixo da topbar.
 
-### Tarefa B: Correção da Footbar (Sticky Footer sem Vão Vazio na Base) — CONCLUÍDA
-- **Container Flex de Altura Total**: `#app-root` configurado com `min-height: 100vh`, `display: flex` e `flex-direction: column`.
-- **Expansão de Espaço Útil**: `#app-root > app-wizard` e `#app-root > app-sheet` configurados com `flex: 1 0 auto; display: flex; flex-direction: column;`, com `.wizard-container` e `.sheet-clean-container` expandindo com `flex: 1 0 auto`.
-- **Ancoragem Automática do Rodapé**: `.app-footer` configurada com `margin-top: auto; width: 100%; position: relative; z-index: 10;`, garantindo que em telas altas ou telas com pouco conteúdo o rodapé fique perfeitamente encostado na base da viewport sem deixar espaços em branco abaixo dele, e acompanhe o fluxo normalmente quando a página tiver rolagem longa.
-- **Validação de Qualidade**: `npm run test:rules` (25/25 aprovados), `npm run lint:style` (0 FAIL) e `npm run build` (build de produção do Angular v22 concluído com sucesso em 100%).
+---
+
+### Tarefa B: Correção da Footbar (Sticky Footer sem Vão Vazio na Parte Inferior) — ✅ Concluído
+- **Problema Resolvido**:
+  - A barra de rodapé (`.app-footer`) agora permanece sempre ancorada na base da viewport em telas grandes ou etapas com pouco conteúdo, eliminando o vão vazio em branco/fundo sob ela.
+- **Implementação Realizada**:
+  1. Configurado `#app-root` no `style.css` como flex container vertical de altura total (`min-height: 100vh; display: flex; flex-direction: column;`).
+  2. Blocos principais `#app-root > app-wizard` e `#app-root > app-sheet` configurados com `flex: 1 0 auto; display: flex; flex-direction: column;` e seus containers (`.wizard-container`, `.sheet-clean-container`) com `flex: 1 0 auto; width: 100%;`.
+  3. No rodapé `.app-footer`, configurado `margin-top: auto; width: 100%; position: relative; z-index: 10;`.
+
+---
+
+## 6. Exibição de Perícias com Valor Bruto (Remoção da Porcentagem)
+
+- **Objetivo**: Substituir a exibição com símbolo de porcentagem (`%`) pelo valor numérico bruto (`número puro`) em todas as perícias (na Ficha Viva, no Assistente Wizard, na Gaveta de Dados e no Toast de Rolagem), facilitando a leitura e alinhando com a Ficha Oficial do Chamado de Cthulhu 7ª Edição (onde cada perícia apresenta seu valor base/alvo e frações ½ e ⅕ sem `%`).
+- **Arquivos Atualizados**:
+  - `src/app/components/sheet/sheet.component.ts`: Perícias em destaque, grade de perícias, Esquiva e Nível de Crédito sem `%`.
+  - `src/app/components/wizard/wizard.component.ts`: Seleção de perícias ocupacionais, contadores de crédito, tabela da Etapa 6 (Base, Total e ½ / ⅕) e resumo de finanças sem `%`.
+  - `src/app/components/dice-drawer/dice-drawer.component.ts`: Alvo de rolagem e frações regulares/difíceis/extremas sem `%`.
+  - `src/app/components/roll-toast/roll-toast.component.ts`: Notificação flutuante de rolagem sem `%`.
+  - `app.js`: Sincronização dos mesmos padrões de exibição sem `%`.
+
 

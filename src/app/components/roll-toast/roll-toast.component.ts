@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CocStateService } from '../../services/coc-state.service';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 
 @Component({
   selector: 'app-roll-toast',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UiIconComponent],
   template: `
     @if (svc.toastRolagemVisivel() && svc.ultimaRolagem() && !svc.gavetaDadosAberta()) {
       <aside class="floating-roll-toast no-print" aria-live="assertive">
@@ -16,11 +17,11 @@ import { CocStateService } from '../../services/coc-state.service';
           <button
             type="button"
             class="btn btn-sm"
-            style="padding:0.05rem 0.35rem; font-size:0.7rem;"
+            style="padding:0.1rem 0.35rem; font-size:0.7rem; display:inline-flex; align-items:center; justify-content:center;"
             (click)="svc.toastRolagemVisivel.set(false)"
             aria-label="Fechar notificação"
           >
-            ✕
+            <app-ui-icon name="close" [size]="10"></app-ui-icon>
           </button>
         </div>
 
@@ -33,7 +34,7 @@ import { CocStateService } from '../../services/coc-state.service';
           <div style="font-weight:bold; font-size:0.9rem;">{{ svc.ultimaRolagem()?.avaliacao?.rotulo }}</div>
           @if (svc.ultimaRolagem()?.d100?.tipoModificador !== 'DANO') {
             <div style="font-size:0.74rem; font-variant-numeric:tabular-nums;">
-              Alvo: {{ svc.ultimaRolagem()?.avaliacao?.regular }}% | ½: {{ svc.ultimaRolagem()?.avaliacao?.dificil }}% | ⅕: {{ svc.ultimaRolagem()?.avaliacao?.extremo }}%
+              Alvo: {{ svc.ultimaRolagem()?.avaliacao?.regular }} | ½: {{ svc.ultimaRolagem()?.avaliacao?.dificil }} | ⅕: {{ svc.ultimaRolagem()?.avaliacao?.extremo }}
             </div>
           }
         </div>

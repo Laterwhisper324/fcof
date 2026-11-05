@@ -63,6 +63,14 @@ export class CocStateService {
   public readonly painelVitaisAberto = signal<boolean>(false);
   public readonly cardAntecedenteAberto = signal<string | null>(null);
   public readonly exportandoPDF = signal<boolean>(false);
+  public readonly rolandoDado = signal<boolean>(false);
+
+  public dispararAnimacaoDado(duracaoMs: number = 850): void {
+    this.rolandoDado.set(true);
+    setTimeout(() => {
+      this.rolandoDado.set(false);
+    }, duracaoMs);
+  }
 
   // Filtros
   public readonly filtroPericiaWizard = signal<string>('ocupacionais');
@@ -624,6 +632,7 @@ export class CocStateService {
 
   // --- ROLADOR 1D100, FORÇAR ROLAGEM E GASTO DE SORTE ---
   public rolarPericiaOuAtributo(rotulo: string, valorAlvo: number, opcoes: { ehTesteSorte?: boolean; ehTesteSanidade?: boolean; forcada?: boolean; periciaId?: string | null } = {}): RegistroRolagem {
+    this.dispararAnimacaoDado();
     const inv = this.inv();
     const d100: D100RollData = this.R.rolar1d100ComBonusPenalidade
       ? this.R.rolar1d100ComBonusPenalidade(this.dadosBonusPenalidade())

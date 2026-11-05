@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CocStateService } from '../../services/coc-state.service';
 import { HudComponent } from '../hud/hud.component';
+import { D20IconComponent } from '../d20-icon/d20-icon.component';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
 
 @Component({
   selector: 'app-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule, HudComponent],
+  imports: [CommonModule, FormsModule, HudComponent, D20IconComponent, UiIconComponent],
   template: `
     <div class="sheet-clean-container">
       <!-- 1. HUD COMPACTO DE STATUS VITAL (Sempre Visível) -->
@@ -125,7 +127,10 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
               <!-- Perícias mais Altas -->
               <div class="sheet-section-box" style="margin-bottom:1rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-                  <h3 style="margin:0; font-size:1.05rem;">⛤ Perícias Mais Altas (Rolagem Rápida)</h3>
+                  <h3 style="margin:0; font-size:1.05rem; display:inline-flex; align-items:center; gap:0.4rem;">
+                    <app-ui-icon name="elder-sign" [size]="16"></app-ui-icon>
+                    <span>Perícias Mais Altas (Rolagem Rápida)</span>
+                  </h3>
                   <button type="button" class="btn btn-sm" (click)="svc.abaFicha.set('pericias')">Ver Todas →</button>
                 </div>
                 <div class="focus-skills-grid">
@@ -140,7 +145,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                         <strong>{{ p.nome }}</strong>
                       </button>
                       <div class="live-skill-fractions">
-                        <strong>{{ svc.obterTotalPericiaObj(p) }}%</strong>
+                        <strong>{{ svc.obterTotalPericiaObj(p) }}</strong>
                         <span>½: {{ svc.mq(svc.obterTotalPericiaObj(p)).metade }}</span>
                         <span>⅕: {{ svc.mq(svc.obterTotalPericiaObj(p)).quinto }}</span>
                       </div>
@@ -161,7 +166,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                       class="roll-trigger-btn"
                       (click)="svc.rolarPericiaOuAtributo('Esquiva', svc.inv().derivados.esquivaBase)"
                     >
-                      <strong>Esquiva:</strong> {{ svc.inv().derivados.esquivaBase }}%
+                      <strong>Esquiva:</strong> {{ svc.inv().derivados.esquivaBase }}
                     </button>
                   </div>
                 </div>
@@ -181,8 +186,10 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                 class="filter-chip"
                 [class.active]="svc.modoVisaoPericiasFicha() === 'destaque'"
                 (click)="svc.modoVisaoPericiasFicha.set('destaque')"
+                style="display:inline-flex; align-items:center; gap:0.35rem;"
               >
-                ⛤ Perícias em Destaque ({{ periciasDestaque().length }})
+                <app-ui-icon name="elder-sign" [size]="13"></app-ui-icon>
+                <span>Perícias em Destaque ({{ periciasDestaque().length }})</span>
               </button>
               <button
                 type="button"
@@ -219,13 +226,13 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     type="button"
                     class="roll-trigger-btn"
                     (click)="svc.rolarPericiaOuAtributo(p.nome, svc.obterTotalPericiaObj(p), { periciaId: p.id })"
-                    [title]="'Rolar 1D100 de ' + p.nome + ' (' + svc.obterTotalPericiaObj(p) + '%)'"
+                    [title]="'Rolar 1D100 de ' + p.nome + ' (' + svc.obterTotalPericiaObj(p) + ')'"
                   >
                     <strong>{{ p.nome }}</strong>
                   </button>
                 </div>
                 <div class="live-skill-fractions">
-                  <strong>{{ svc.obterTotalPericiaObj(p) }}%</strong>
+                  <strong>{{ svc.obterTotalPericiaObj(p) }}</strong>
                   <span>½: {{ svc.mq(svc.obterTotalPericiaObj(p)).metade }}</span>
                   <span>⅕: {{ svc.mq(svc.obterTotalPericiaObj(p)).quinto }}</span>
                 </div>
@@ -262,12 +269,13 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   @if (item.imagemUrl) {
                     <img [src]="item.imagemUrl" [alt]="item.nome" loading="lazy" />
                   } @else {
-                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-                      <span>📷</span><br /><span>+ Imagem</span>
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.2rem;">
+                      <app-ui-icon name="camera" [size]="18"></app-ui-icon>
+                      <span>+ Imagem</span>
                     </div>
                   }
                   <div class="arsenal-img-overlay">
-                    <span>📷 Trocar Imagem</span>
+                    <span style="display:inline-flex; align-items:center; gap:0.3rem;"><app-ui-icon name="camera" [size]="14"></app-ui-icon> Trocar Imagem</span>
                   </div>
                 </div>
 
@@ -291,7 +299,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     (click)="executarAcaoItem(item)"
                     [title]="item.tipoItem !== 'geral' && item.danoBase && item.danoBase !== '-' ? 'Rolar Dano (' + item.danoBase + ')' : 'Inspecionar Item'"
                   >
-                    🎲
+                    <app-d20-icon [size]="15"></app-d20-icon>
                   </button>
                   <button
                     type="button"
@@ -299,7 +307,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     (click)="editarItem(item)"
                     title="Editar dados e imagem do item"
                   >
-                    ✏️
+                    <app-ui-icon name="pen" [size]="14"></app-ui-icon>
                   </button>
                   <button
                     type="button"
@@ -307,7 +315,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     (click)="removerArma(item.id)"
                     title="Remover item do inventário"
                   >
-                    🗑️
+                    <app-ui-icon name="trash" [size]="14"></app-ui-icon>
                   </button>
                 </div>
               </div>
@@ -332,12 +340,13 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                   @if (item.imagemUrl) {
                     <img [src]="item.imagemUrl" [alt]="item.nome" loading="lazy" />
                   } @else {
-                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
-                      <span>📷</span><br /><span>+ Imagem</span>
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.2rem;">
+                      <app-ui-icon name="camera" [size]="18"></app-ui-icon>
+                      <span>+ Imagem</span>
                     </div>
                   }
                   <div class="arsenal-img-overlay">
-                    <span>📷 Trocar Imagem</span>
+                    <span style="display:inline-flex; align-items:center; gap:0.3rem;"><app-ui-icon name="camera" [size]="14"></app-ui-icon> Trocar Imagem</span>
                   </div>
                 </div>
 
@@ -359,7 +368,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     (click)="executarAcaoItem(item)"
                     [title]="item.tipoItem !== 'geral' && item.danoBase && item.danoBase !== '-' ? 'Rolar Dano (' + item.danoBase + ')' : 'Inspecionar Item'"
                   >
-                    🎲
+                    <app-d20-icon [size]="15"></app-d20-icon>
                   </button>
                   <button
                     type="button"
@@ -367,7 +376,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     (click)="editarItem(item)"
                     title="Editar dados e imagem do item"
                   >
-                    ✏️
+                    <app-ui-icon name="pen" [size]="14"></app-ui-icon>
                   </button>
                   <button
                     type="button"
@@ -375,7 +384,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
                     (click)="removerArma(item.id)"
                     title="Remover item da mochila"
                   >
-                    🗑️
+                    <app-ui-icon name="trash" [size]="14"></app-ui-icon>
                   </button>
                 </div>
               </div>
@@ -407,9 +416,15 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
               <div class="lore-card" [class.is-key-connection]="svc.inv().antecedentes.conexaoChave === c.titulo">
                 <div class="lore-card-header" (click)="alternarLore(c.chave)">
                   <strong>{{ c.titulo }}</strong>
-                  <span style="font-size:0.8rem; color:var(--text-muted);">
-                    {{ loreAberto() === c.chave ? '▲ Fechar' : '▼ Editar' }}
-                  </span>
+                  @if (loreAberto() === c.chave) {
+                    <span style="font-size:0.8rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:0.25rem;">
+                      <app-ui-icon name="chevron-up" [size]="12"></app-ui-icon> Fechar
+                    </span>
+                  } @else {
+                    <span style="font-size:0.8rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:0.25rem;">
+                      <app-ui-icon name="chevron-down" [size]="12"></app-ui-icon> Editar
+                    </span>
+                  }
                 </div>
                 @if (loreAberto() !== c.chave) {
                   <div class="lore-card-preview" (click)="alternarLore(c.chave)">
@@ -437,7 +452,7 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
         <div class="deco-frame" style="margin-bottom:1.5rem;">
           <div class="sheet-section-box" style="margin-bottom:1rem;">
             <h3 style="margin:0 0 0.5rem; font-family:var(--font-serif); font-size:1.2rem;">
-              Finanças (Nível de Crédito: {{ svc.totaisPericias().nivelCredito }}%)
+              Finanças (Nível de Crédito: {{ svc.totaisPericias().nivelCredito }})
             </h3>
             <div class="grid-3" style="font-size:0.88rem;">
               <div><strong>Nível de Gastos:</strong> \${{ svc.inv().financas.nivelGastos }}</div>
@@ -462,7 +477,9 @@ import { PericiaInvestigador, ArmaInvestigador } from '../../models/coc.models';
               @for (item of svc.inv().equipamentos; track $index) {
                 <li style="display:flex; justify-content:space-between; align-items:center; padding:0.25rem 0;">
                   <span>{{ item }}</span>
-                  <button type="button" class="btn btn-sm btn-danger" style="padding:0.1rem 0.4rem; font-size:0.7rem;" (click)="removerItem($index)">✕</button>
+                  <button type="button" class="btn btn-sm btn-danger" style="padding:0.15rem 0.4rem; font-size:0.7rem; display:inline-flex; align-items:center;" (click)="removerItem($index)" title="Remover item">
+                    <app-ui-icon name="close" [size]="10"></app-ui-icon>
+                  </button>
                 </li>
               }
             </ul>

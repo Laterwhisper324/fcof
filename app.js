@@ -1667,7 +1667,7 @@
                 <input type="checkbox"
                   ng-checked="$ctrl.inv().ocupacaoPericiasEscolhidas.indexOf(p.id) >= 0"
                   ng-click="$ctrl.alternarEscolhaOcupacional(p.id)" />
-                <span>{{p.nome}} ({{p.base}}%)</span>
+                <span>{{p.nome}} ({{p.base}})</span>
               </label>
             </div>
           </div>
@@ -1691,8 +1691,8 @@
 
             <div class="counter-pill" ng-class="{'over-budget': !$ctrl.totaisPericias().creditoValido}">
               <span>Crédito:</span>
-              <strong>{{$ctrl.totaisPericias().nivelCredito}}%</strong>
-              <span style="font-size:0.78rem;">(Faixa: {{$ctrl.totaisPericias().creditoMin}}–{{$ctrl.totaisPericias().creditoMax}}%)</span>
+              <strong>{{$ctrl.totaisPericias().nivelCredito}}</strong>
+              <span style="font-size:0.78rem;">(Faixa: {{$ctrl.totaisPericias().creditoMin}}–{{$ctrl.totaisPericias().creditoMax}})</span>
             </div>
           </div>
 
@@ -1794,7 +1794,7 @@
                         ng-change="$ctrl.atualizarRotuloEspecializacao(p)" />
                     </div>
                   </td>
-                  <td style="font-variant-numeric:tabular-nums;">{{p.base}}%</td>
+                  <td style="font-variant-numeric:tabular-nums;">{{p.base}}</td>
                   <td>
                     <div style="display:inline-flex; align-items:center; gap:0.2rem;">
                       <button type="button" class="hud-mini-btn"
@@ -1824,10 +1824,10 @@
                     </div>
                   </td>
                   <td style="font-variant-numeric:tabular-nums; font-weight:bold;">
-                    {{$ctrl.svc.obterTotalPericiaObj(p)}}%
+                    {{$ctrl.svc.obterTotalPericiaObj(p)}}
                   </td>
                   <td style="font-variant-numeric:tabular-nums; font-size:0.8rem; color:var(--text-muted);">
-                    {{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).metade}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).quinto}}%
+                    {{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).metade}} / {{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).quinto}}
                   </td>
                 </tr>
               </tbody>
@@ -1934,7 +1934,7 @@
           <div class="sheet-section-box" ng-if="$ctrl.state.subAbaEtapa8 === 'financas'">
             <h3 class="sheet-section-title">
               <span>Dinheiro &amp; Recursos — Anos 1920 (Tabela II, págs. 46–47)</span>
-              <span>Nível de Crédito: {{$ctrl.financas1920().nivelCredito}}%</span>
+              <span>Nível de Crédito: {{$ctrl.financas1920().nivelCredito}}</span>
             </h3>
             <div class="grid-3" style="margin-bottom:0.75rem;">
               <div class="attr-card">
@@ -1989,9 +1989,9 @@
                     <td><strong>{{arma.nome}}</strong></td>
                     <td>{{arma.periciaNome}}</td>
                     <td style="font-variant-numeric:tabular-nums; font-weight:bold;">
-                      {{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}}% /
-                      {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}}% /
-                      {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}%
+                      {{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}} /
+                      {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}} /
+                      {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}
                     </td>
                     <td style="font-variant-numeric:tabular-nums;">
                       {{$ctrl.R.formatarDanoArma(arma.danoBase, arma.somaDX, $ctrl.inv().derivados.danoExtra)}}
@@ -2496,7 +2496,7 @@
                         <strong>{{p.nome}}</strong>
                       </button>
                       <span style="font-variant-numeric:tabular-nums; font-weight:bold;">
-                        {{$ctrl.svc.obterTotalPericiaObj(p)}}%
+                        {{$ctrl.svc.obterTotalPericiaObj(p)}}
                         <small style="color:var(--text-muted);">({{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).metade}}/{{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).quinto}})</small>
                       </span>
                     </div>
@@ -2565,7 +2565,7 @@
                   </div>
                   <div class="live-skill-right">
                     <span ng-if="!$ctrl.state.modoEdicaoPericiasFicha" style="font-weight:bold; font-size:0.95rem;">
-                      {{$ctrl.svc.obterTotalPericiaObj(p)}}%
+                      {{$ctrl.svc.obterTotalPericiaObj(p)}}
                     </span>
                     <input type="number" min="0" max="99" class="live-skill-total-input"
                       ng-if="$ctrl.state.modoEdicaoPericiasFicha"
@@ -2601,7 +2601,7 @@
                   </div>
                   <div class="live-skill-right">
                     <span ng-if="!$ctrl.state.modoEdicaoPericiasFicha" style="font-weight:bold;">
-                      {{$ctrl.svc.obterTotalPericiaObj(p)}}%
+                      {{$ctrl.svc.obterTotalPericiaObj(p)}}
                     </span>
                     <input type="number" min="0" max="99" class="live-skill-total-input"
                       ng-if="$ctrl.state.modoEdicaoPericiasFicha"
@@ -2629,7 +2629,7 @@
                 </div>
                 <div class="live-skill-right">
                   <span ng-if="!$ctrl.state.modoEdicaoPericiasFicha" style="font-weight:bold;">
-                    {{$ctrl.svc.obterTotalPericiaObj(p)}}%
+                    {{$ctrl.svc.obterTotalPericiaObj(p)}}
                   </span>
                   <input type="number" min="0" max="99" class="live-skill-total-input"
                     ng-if="$ctrl.state.modoEdicaoPericiasFicha"
@@ -2659,7 +2659,7 @@
               <div class="attr-card">
                 <span class="attr-sigla">Esquiva</span>
                 <div style="display:flex; align-items:center; justify-content:space-between;">
-                  <span class="vital-big-number">{{$ctrl.svc.obterTotalPericia($ctrl.inv(), 'esquiva')}}%</span>
+                  <span class="vital-big-number">{{$ctrl.svc.obterTotalPericia($ctrl.inv(), 'esquiva')}}</span>
                   <button type="button" class="btn btn-sm btn-primary"
                     ng-click="$ctrl.svc.rolarPericiaOuAtributo('Esquiva', $ctrl.svc.obterTotalPericia($ctrl.inv(), 'esquiva'), {periciaId: 'esquiva'})">
                     Esquivar
@@ -2702,9 +2702,9 @@
                       </td>
                       <td>{{arma.periciaNome}}</td>
                       <td style="font-variant-numeric:tabular-nums; font-weight:bold;">
-                        {{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}}% /
-                        {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}}% /
-                        {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}%
+                        {{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}} /
+                        {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}} /
+                        {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}
                       </td>
                       <td>
                         <button type="button" class="btn btn-sm" style="font-variant-numeric:tabular-nums;"
@@ -2810,7 +2810,7 @@
               <div class="sheet-section-box">
                 <h3 class="sheet-section-title">
                   <span>Dinheiro &amp; Recursos (1920s)</span>
-                  <span>Crédito: {{$ctrl.financas1920().nivelCredito}}% ({{$ctrl.financas1920().padraoVida}})</span>
+                  <span>Crédito: {{$ctrl.financas1920().nivelCredito}} ({{$ctrl.financas1920().padraoVida}})</span>
                 </h3>
                 <div class="grid-3" style="margin-bottom:0.65rem;">
                   <div class="form-group">
@@ -3106,7 +3106,7 @@
             <div class="live-skill-row" ng-repeat="p in $ctrl.inv().pericias track by p.id">
               <span>{{p.marcada ? '[X]' : '[ ]'}} {{p.nome}}</span>
               <span style="font-variant-numeric:tabular-nums;">
-                <strong>{{$ctrl.svc.obterTotalPericiaObj(p)}}%</strong>
+                <strong>{{$ctrl.svc.obterTotalPericiaObj(p)}}</strong>
                 ({{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).metade}}/{{$ctrl.mq($ctrl.svc.obterTotalPericiaObj(p)).quinto}})
               </span>
             </div>
@@ -3117,7 +3117,7 @@
         <div class="sheet-section-box">
           <h3 class="sheet-section-title">
             <span>Armas &amp; Combate</span>
-            <span>Dano Extra: {{$ctrl.inv().derivados.danoExtra}} | Corpo: {{$ctrl.inv().derivados.corpo}} | Esquiva: {{$ctrl.svc.obterTotalPericia($ctrl.inv(), 'esquiva')}}%</span>
+            <span>Dano Extra: {{$ctrl.inv().derivados.danoExtra}} | Corpo: {{$ctrl.inv().derivados.corpo}} | Esquiva: {{$ctrl.svc.obterTotalPericia($ctrl.inv(), 'esquiva')}}</span>
           </h3>
           <table class="skills-table">
             <thead>
@@ -3127,7 +3127,7 @@
               <tr ng-repeat="arma in $ctrl.inv().armas track by $index">
                 <td><strong>{{arma.nome}}</strong></td>
                 <td>{{arma.periciaNome}}</td>
-                <td style="font-variant-numeric:tabular-nums;">{{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}}% / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}%</td>
+                <td style="font-variant-numeric:tabular-nums;">{{$ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)}} / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).metade}} / {{$ctrl.mq($ctrl.svc.obterTotalPericia($ctrl.inv(), arma.periciaId)).quinto}}</td>
                 <td style="font-variant-numeric:tabular-nums;">{{$ctrl.R.formatarDanoArma(arma.danoBase, arma.somaDX, $ctrl.inv().derivados.danoExtra)}}</td>
                 <td>{{arma.alcance}}</td><td>{{arma.ataques}}</td><td>{{arma.municao}}</td><td>{{arma.defeito}}</td>
               </tr>
@@ -3492,7 +3492,7 @@
           <div ng-if="$ctrl.periciasMarcadas().length > 0" style="margin-bottom:1rem;">
             <ul style="font-size:0.88rem;">
               <li ng-repeat="p in $ctrl.periciasMarcadas() track by p.id">
-                <strong>{{p.nome}}</strong> ({{$ctrl.svc.obterTotalPericiaObj(p)}}%)
+                <strong>{{p.nome}}</strong> ({{$ctrl.svc.obterTotalPericiaObj(p)}})
               </li>
             </ul>
             <button type="button" class="btn btn-primary" ng-click="$ctrl.executarFaseDesenvolvimento()">

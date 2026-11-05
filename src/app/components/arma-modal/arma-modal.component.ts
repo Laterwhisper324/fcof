@@ -13,11 +13,12 @@ import { FormsModule } from '@angular/forms';
 import { CocStateService } from '../../services/coc-state.service';
 import { ArmaInvestigador } from '../../models/coc.models';
 import { ITEM_ICON_PRESETS, ItemIconPreset, obterIconePadrao } from '../../utils/item-icons';
+import { UiIconComponent } from '../ui-icon/ui-icon.component';
 
 @Component({
   selector: 'app-arma-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, UiIconComponent],
   template: `
     @if (isOpen()) {
       <div
@@ -34,8 +35,9 @@ import { ITEM_ICON_PRESETS, ItemIconPreset, obterIconePadrao } from '../../utils
             (click)="fechar()"
             aria-label="Fechar modal de item"
             title="Fechar (ESC)"
+            style="display:inline-flex; align-items:center; justify-content:center;"
           >
-            ✕
+            <app-ui-icon name="close" [size]="14"></app-ui-icon>
           </button>
 
           <h3 id="modal-arma-title" style="margin: 0 0 0.35rem; font-family: var(--font-serif); font-size: 1.35rem;">
@@ -85,8 +87,9 @@ import { ITEM_ICON_PRESETS, ItemIconPreset, obterIconePadrao } from '../../utils
               <!-- Controles de Imagem (Upload + URL) -->
               <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 0.45rem;">
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
-                  <label class="btn btn-sm" style="cursor: pointer; margin: 0;">
-                    📁 Carregar Imagem Local...
+                  <label class="btn btn-sm" style="cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <app-ui-icon name="folder" [size]="14"></app-ui-icon>
+                    <span>Carregar Imagem Local...</span>
                     <input type="file" accept="image/*" style="display: none;" (change)="onFileSelected($event)" />
                   </label>
                   @if (formImagemUrl) {
